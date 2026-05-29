@@ -13,7 +13,10 @@ export function Upload({ onSelect, disabled }: Props) {
 
   const handleFile = useCallback(
     (file: File) => {
-      setPreview(URL.createObjectURL(file))
+      setPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return URL.createObjectURL(file)
+      })
       onSelect(file)
     },
     [onSelect],

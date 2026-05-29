@@ -6,4 +6,5 @@ python-multipart
 pillow
 numpy
 pytest
+pytest-asyncio
 httpx

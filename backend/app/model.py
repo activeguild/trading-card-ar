@@ -42,13 +42,16 @@ def _predict_mask(image: Image.Image) -> Image.Image:
     ])
     input_tensor = transform(image).unsqueeze(0).to(_device)
 
+    if _net is None:
+        raise RuntimeError("Model is not loaded. Call load_model() first.")
+
     with torch.no_grad():
         d0, *_ = _net(input_tensor)
 
     mask = _normalize_mask(d0.squeeze())
     mask_np = (mask.cpu().numpy() * 255).astype(np.uint8)
     mask_image = Image.fromarray(mask_np, mode="L")
-    return mask_image.resize(original_size, Image.BILINEAR)
+    return mask_image.resize(original_size, Image.Resampling.BILINEAR)
 
 
 def _image_to_base64(image: Image.Image) -> str:

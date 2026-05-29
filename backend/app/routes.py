@@ -7,12 +7,13 @@ router = APIRouter(prefix="/api")
 
 
 @router.post("/segment")
-async def segment(file: UploadFile = File(...)):
+def segment(file: UploadFile = File(...)):
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
     try:
         image = Image.open(file.file)
+        image.load()
     except UnidentifiedImageError:
         raise HTTPException(status_code=400, detail="Cannot read image file")
 
