@@ -8,20 +8,16 @@ Upload an image and separate it into person (foreground) and background using U-
 
 Download `u2net_human_seg.pth` from the [U-2-Net repository](https://github.com/xuebinqin/U-2-Net) and place it in `backend/models/`.
 
-### 2. Backend
+### 2. Install dependencies
 
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+make setup
 ```
 
-### 3. Frontend
+### 3. Start
 
 ```bash
-cd frontend
-npm install
-npm run dev
+make dev
 ```
 
 Open http://localhost:5173 in your browser.
