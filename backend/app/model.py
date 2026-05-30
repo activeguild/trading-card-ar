@@ -2,7 +2,7 @@ import io
 import base64
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 from rembg import remove, new_session
 
 _session = None
@@ -21,15 +21,14 @@ def _image_to_base64(image: Image.Image) -> str:
 
 
 def segment_image(image: Image.Image) -> dict[str, str]:
-    image = image.convert("RGB")
+    image = ImageOps.exif_transpose(image.convert("RGB"))
 
     # rembg returns RGBA with background transparent
     person = remove(image, session=_session)
 
     # Background: invert the alpha channel
     person_arr = np.array(person)
-    rgba = image.convert("RGBA")
-    bg_arr = np.array(rgba)
+    bg_arr = np.array(image.convert("RGBA"))
     bg_arr[:, :, 3] = 255 - person_arr[:, :, 3]
     background = Image.fromarray(bg_arr, "RGBA")
 
