@@ -7,6 +7,7 @@ import { Upload } from './components/Upload'
 type Result = {
   person: string
   background: string
+  corrected?: string | null
 }
 
 export default function App() {
@@ -46,7 +47,7 @@ export default function App() {
       {result && (
         <>
           <hr className={styles.divider} />
-          <ResultView person={result.person} background={result.background} />
+          <ResultView person={result.person} background={result.background} corrected={result.corrected} />
         </>
       )}
     </div>

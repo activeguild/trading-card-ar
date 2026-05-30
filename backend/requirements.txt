@@ -1,4 +1,5 @@
 rembg[cpu]
+opencv-python-headless
 fastapi
 uvicorn[standard]
 python-multipart
