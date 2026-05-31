@@ -8,3 +8,7 @@ numpy
 pytest
 pytest-asyncio
 httpx
+sqlalchemy
+pyjwt
+bcrypt
+pydantic[email]
