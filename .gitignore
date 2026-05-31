@@ -12,3 +12,9 @@ frontend/dist/
 
 # OS
 .DS_Store
+
+# Database
+backend/toreka.db
+
+# Uploads
+backend/uploads/
