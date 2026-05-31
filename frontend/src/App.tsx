@@ -3,6 +3,10 @@ import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { CollectionsPage } from './pages/CollectionsPage'
+import { CollectionDetailPage } from './pages/CollectionDetailPage'
+import { CardRegisterPage } from './pages/CardRegisterPage'
+import { CardDetailPage } from './pages/CardDetailPage'
 import { HomePage } from './pages/HomePage'
 
 export default function App() {
@@ -18,7 +22,13 @@ export default function App() {
         }
       >
         <Route path="/" element={<Navigate to="/collections" replace />} />
-        <Route path="/collections" element={<HomePage />} />
+        <Route path="/collections" element={<CollectionsPage />} />
+        <Route path="/collections/:id" element={<CollectionDetailPage />} />
+        <Route
+          path="/collections/:id/register"
+          element={<CardRegisterPage />}
+        />
+        <Route path="/cards/:id" element={<CardDetailPage />} />
         <Route path="/decks" element={<HomePage />} />
       </Route>
     </Routes>
