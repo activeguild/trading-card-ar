@@ -1,0 +1,9 @@
+.page {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.message {
+  color: #64748b;
+  font-size: 16px;
+}
