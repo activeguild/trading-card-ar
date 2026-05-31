@@ -7,6 +7,7 @@ import { CollectionsPage } from './pages/CollectionsPage'
 import { CollectionDetailPage } from './pages/CollectionDetailPage'
 import { CardRegisterPage } from './pages/CardRegisterPage'
 import { CardDetailPage } from './pages/CardDetailPage'
+import { EffectPage } from './pages/EffectPage'
 import { HomePage } from './pages/HomePage'
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
           element={<CardRegisterPage />}
         />
         <Route path="/cards/:id" element={<CardDetailPage />} />
+        <Route path="/cards/:id/effect" element={<EffectPage />} />
         <Route path="/decks" element={<HomePage />} />
       </Route>
     </Routes>

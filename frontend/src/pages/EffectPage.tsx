@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { apiJson, apiFetch } from '../lib/api'
+import { apiJson } from '../lib/api'
 import { Loading } from '../components/Loading'
 import styles from './EffectPage.module.css'
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiJson, apiFetch } from '../lib/api'
 import styles from './CardDetailPage.module.css'
@@ -47,9 +47,13 @@ export function CardDetailPage() {
         />
       </div>
       <div className={styles.actions}>
-        <button className={styles.effectBtn} disabled>
-          Add Effect (Phase 3)
-        </button>
+        {card.effect_url ? (
+          <div className={styles.effectBadge}>Effect Applied</div>
+        ) : (
+          <Link to={`/cards/${card.id}/effect`} className={styles.effectBtn}>
+            Add Effect
+          </Link>
+        )}
         <button className={styles.deleteBtn} onClick={handleDelete}>
           Delete Card
         </button>
