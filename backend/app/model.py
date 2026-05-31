@@ -1,8 +1,10 @@
 import io
 import base64
+from pathlib import Path
 
 import cv2
 import numpy as np
+import pytesseract
 from PIL import Image, ImageOps
 from rembg import remove, new_session
 
@@ -104,3 +106,52 @@ def segment_image(image: Image.Image) -> dict[str, str | None]:
         "corrected": _image_to_base64(corrected) if corrected else None,
     }
     return result
+
+
+def process_card(image: Image.Image) -> tuple[Image.Image, Image.Image | None]:
+    """Process a card image: background removal + perspective correction.
+    Returns (original_rgb, corrected_or_none).
+    """
+    image = ImageOps.exif_transpose(image.convert("RGB"))
+    person = remove(image, session=_session)
+    person_arr = np.array(person)
+    corrected = _correct_perspective(image, person_arr[:, :, 3])
+    return image, corrected
+
+
+def ocr_card_name(image: Image.Image) -> str:
+    """Extract card name from the top 20% of a corrected card image."""
+    w, h = image.size
+    top_crop = image.crop((0, 0, w, int(h * 0.2)))
+    try:
+        text = pytesseract.image_to_string(top_crop, lang="jpn+eng").strip()
+        # Take first non-empty line as card name
+        for line in text.splitlines():
+            line = line.strip()
+            if line:
+                return line
+    except Exception:
+        pass
+    return ""
+
+
+def save_card_images(
+    card_id: int,
+    original: Image.Image,
+    corrected: Image.Image,
+    uploads_dir: Path,
+) -> tuple[str, str]:
+    """Save original and corrected images, return relative paths."""
+    card_dir = uploads_dir / "cards" / str(card_id)
+    card_dir.mkdir(parents=True, exist_ok=True)
+
+    original_path = card_dir / "original.png"
+    corrected_path = card_dir / "corrected.png"
+
+    original.save(str(original_path), format="PNG")
+    corrected.save(str(corrected_path), format="PNG")
+
+    return (
+        f"cards/{card_id}/original.png",
+        f"cards/{card_id}/corrected.png",
+    )
