@@ -15,7 +15,8 @@ export function CardRegisterPage() {
   const { id: collectionId } = useParams<{ id: string }>()
   const { token } = useAuth()
   const navigate = useNavigate()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
 
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -31,6 +32,14 @@ export function CardRegisterPage() {
     setResult(null)
     setError('')
   }, [])
+
+  const onFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const f = e.target.files?.[0]
+      if (f) handleFile(f)
+    },
+    [handleFile],
+  )
 
   const handleUpload = useCallback(async () => {
     if (!file || !token) return
@@ -81,29 +90,41 @@ export function CardRegisterPage() {
 
       {!result && (
         <>
-          <div
-            className={styles.uploadArea}
-            onClick={() => inputRef.current?.click()}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className={styles.hidden}
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) handleFile(f)
-              }}
-            />
-            {preview ? (
+          {preview ? (
+            <div className={styles.previewArea}>
               <img src={preview} alt="Preview" className={styles.preview} />
-            ) : (
-              <p className={styles.uploadLabel}>
-                Tap to take a photo or select an image
-              </p>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className={styles.buttonGroup}>
+              <button
+                className={styles.cameraBtn}
+                onClick={() => cameraRef.current?.click()}
+              >
+                Take Photo
+              </button>
+              <button
+                className={styles.galleryBtn}
+                onClick={() => galleryRef.current?.click()}
+              >
+                Choose from Gallery
+              </button>
+            </div>
+          )}
+          <input
+            ref={cameraRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className={styles.hidden}
+            onChange={onFileChange}
+          />
+          <input
+            ref={galleryRef}
+            type="file"
+            accept="image/*"
+            className={styles.hidden}
+            onChange={onFileChange}
+          />
           {processing && <Loading />}
           {error && <p className={styles.error}>{error}</p>}
           {file && !processing && (
