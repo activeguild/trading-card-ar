@@ -106,7 +106,7 @@ def register_card(
     # Generate 8thwall image target
     target_dir = UPLOADS_DIR / "cards" / str(card.id) / "target"
     corrected_abs = UPLOADS_DIR / corrected_path
-    generate_image_target(corrected_abs, target_dir, f"card_{card.id}")
+    generate_image_target(corrected_abs, target_dir, f"card_{card.id}", card.id)
 
     return _card_to_out(card)
 
