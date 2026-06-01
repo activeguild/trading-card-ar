@@ -30,7 +30,7 @@ export function CardPlane({ src, width, height }: Props) {
   return (
     <mesh position={[0, 0, -0.001]} renderOrder={0}>
       <planeGeometry args={[planeWidth, planeHeight]} />
-      <meshBasicMaterial map={texture} />
+      <meshBasicMaterial map={texture} toneMapped={false} />
     </mesh>
   )
 }
