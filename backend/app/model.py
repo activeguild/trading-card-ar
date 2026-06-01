@@ -121,12 +121,28 @@ def process_card(image: Image.Image) -> tuple[Image.Image, Image.Image | None]:
 
 def ocr_card_name(image: Image.Image) -> str:
     """Extract card name from the top 20% of a corrected card image."""
+    import subprocess
+    import tempfile
+
     w, h = image.size
-    top_crop = image.crop((0, 0, w, int(h * 0.2)))
-    # Try jpn+eng first, fallback to eng only
-    for lang in ("jpn+eng", "eng"):
+    top_crop = image.crop((0, 0, w, int(h * 0.2))).convert("RGB")
+
+    # Use uploads dir for temp file (sandbox-safe)
+    uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+    uploads_dir.mkdir(exist_ok=True)
+
+    for lang in ("jpn", "eng"):
         try:
-            text = pytesseract.image_to_string(top_crop, lang=lang).strip()
+            tmp_path = uploads_dir / "_ocr_tmp.png"
+            top_crop.save(str(tmp_path), format="PNG")
+
+            result = subprocess.run(
+                ["tesseract", str(tmp_path), "stdout", "-l", lang],
+                capture_output=True,
+            )
+            tmp_path.unlink(missing_ok=True)
+
+            text = result.stdout.decode("utf-8", errors="replace").strip()
             for line in text.splitlines():
                 line = line.strip()
                 if line:
