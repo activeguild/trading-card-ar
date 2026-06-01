@@ -41,6 +41,10 @@ def _correct_perspective(original: Image.Image, alpha: np.ndarray) -> Image.Imag
     # Binarize alpha channel
     _, binary = cv2.threshold(alpha, 128, 255, cv2.THRESH_BINARY)
 
+    # Dilate mask to recover card edges lost during background removal
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    binary = cv2.dilate(binary, kernel, iterations=1)
+
     contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
         return None
