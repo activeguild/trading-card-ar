@@ -77,10 +77,8 @@ export function TransparentVideo({ src, width, height }: Props) {
     }
   })
 
-  // Scale slightly larger than 1.0 to cover card edges
-  const scale = 1.05
   const aspect = width / height
-  const planeHeight = scale
+  const planeHeight = 1
   const planeWidth = planeHeight * aspect
 
   return (
