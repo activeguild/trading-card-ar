@@ -77,9 +77,10 @@ export function TransparentVideo({ src, width, height }: Props) {
     }
   })
 
-  // Scale to match card aspect ratio, normalized to unit scale from ImageTracker
+  // Scale slightly larger than 1.0 to cover card edges
+  const scale = 1.05
   const aspect = width / height
-  const planeHeight = 1
+  const planeHeight = scale
   const planeWidth = planeHeight * aspect
 
   return (
