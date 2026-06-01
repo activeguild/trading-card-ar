@@ -61,7 +61,7 @@ def generate_image_target(
     }
 
     target_data = {
-        "imagePath": f"image-targets/{luminance_name}",
+        "imagePath": luminance_name,
         "metadata": None,
         "name": name,
         "type": "PLANAR",

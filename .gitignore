@@ -18,3 +18,5 @@ backend/toreka.db
 
 # Uploads
 backend/uploads/
+
+.pnpm-store
