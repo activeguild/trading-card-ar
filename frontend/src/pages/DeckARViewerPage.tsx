@@ -5,12 +5,14 @@ import {
   EighthwallCamera,
   ImageTracker,
 } from '@j1ngzoue/8thwall-react-three-fiber'
+import { CardPlane } from '../components/CardPlane'
 import { TransparentVideo } from '../components/TransparentVideo'
 import styles from './DeckARViewerPage.module.css'
 
 type ARDeckCard = {
   id: number
   name: string
+  marker_url: string
   target_url: string
   effect_url: string | null
 }
@@ -57,6 +59,7 @@ export function DeckARViewerPage() {
         <EighthwallCamera />
         {deck.cards.map((card) => (
           <ImageTracker key={card.id} targetImage={card.target_url}>
+            <CardPlane src={card.marker_url} width={590} height={860} />
             {card.effect_url && (
               <TransparentVideo
                 src={card.effect_url}

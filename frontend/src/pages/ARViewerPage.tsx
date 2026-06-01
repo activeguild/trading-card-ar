@@ -5,6 +5,7 @@ import {
   EighthwallCamera,
   ImageTracker,
 } from '@j1ngzoue/8thwall-react-three-fiber'
+import { CardPlane } from '../components/CardPlane'
 import { TransparentVideo } from '../components/TransparentVideo'
 import styles from './ARViewerPage.module.css'
 
@@ -50,6 +51,7 @@ export function ARViewerPage() {
       >
         <EighthwallCamera />
         <ImageTracker targetImage={card.target_url}>
+          <CardPlane src={card.marker_url} width={590} height={860} />
           {card.effect_url && (
             <TransparentVideo
               src={card.effect_url}
