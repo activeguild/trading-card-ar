@@ -9,7 +9,9 @@ import { CardRegisterPage } from './pages/CardRegisterPage'
 import { CardDetailPage } from './pages/CardDetailPage'
 import { EffectPage } from './pages/EffectPage'
 import { ARViewerPage } from './pages/ARViewerPage'
-import { HomePage } from './pages/HomePage'
+import { DecksPage } from './pages/DecksPage'
+import { DeckDetailPage } from './pages/DeckDetailPage'
+import { DeckARViewerPage } from './pages/DeckARViewerPage'
 
 export default function App() {
   return (
@@ -17,6 +19,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/ar/card/:id" element={<ARViewerPage />} />
+      <Route path="/ar/deck/:id" element={<DeckARViewerPage />} />
       <Route
         element={
           <ProtectedRoute>
@@ -33,7 +36,8 @@ export default function App() {
         />
         <Route path="/cards/:id" element={<CardDetailPage />} />
         <Route path="/cards/:id/effect" element={<EffectPage />} />
-        <Route path="/decks" element={<HomePage />} />
+        <Route path="/decks" element={<DecksPage />} />
+        <Route path="/decks/:id" element={<DeckDetailPage />} />
       </Route>
     </Routes>
   )
