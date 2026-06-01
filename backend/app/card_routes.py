@@ -50,7 +50,8 @@ def list_cards(
     )
     if not col:
         raise HTTPException(status_code=404, detail="Collection not found")
-    return [_card_to_out(c) for c in col.cards]
+    cards = sorted(col.cards, key=lambda c: c.created_at, reverse=True)
+    return [_card_to_out(c) for c in cards]
 
 
 @router.post("/register/{collection_id}", response_model=CardOut, status_code=201)
