@@ -7,6 +7,8 @@
  */
 import { applyCrop } from '@8thwall/image-target-cli/src/apply.js'
 import sharp from 'sharp'
+import fs from 'fs/promises'
+import path from 'path'
 
 const [,, inputPath, outputDir, name] = process.argv
 
@@ -32,4 +34,16 @@ const crop = {
 }
 
 await applyCrop(rawImage, crop, outputDir, name, true)
+
+// XR8 resolves imagePath ("image-targets/xxx_luminance.png") relative to the JSON.
+// Create image-targets/ subdirectory with a copy of the luminance image.
+const ext = metadata.format === 'jpeg' ? 'jpg' : metadata.format
+const luminanceName = `${name}_luminance.${ext}`
+const imgTargetsDir = path.join(outputDir, 'image-targets')
+await fs.mkdir(imgTargetsDir, { recursive: true })
+await fs.copyFile(
+  path.join(outputDir, luminanceName),
+  path.join(imgTargetsDir, luminanceName)
+)
+
 console.log(JSON.stringify({ ok: true, name }))
