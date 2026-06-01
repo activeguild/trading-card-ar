@@ -3,10 +3,12 @@ import base64
 from pathlib import Path
 
 import cv2
+import easyocr
 import numpy as np
-import pytesseract
 from PIL import Image, ImageOps
 from rembg import remove, new_session
+
+_ocr_reader: easyocr.Reader | None = None
 
 _session = None
 
@@ -16,8 +18,9 @@ CARD_H = 860
 
 
 def load_model() -> None:
-    global _session
+    global _session, _ocr_reader
     _session = new_session("isnet-general-use")
+    _ocr_reader = easyocr.Reader(["ja", "en"], gpu=False)
 
 
 def _image_to_base64(image: Image.Image) -> str:
@@ -120,36 +123,26 @@ def process_card(image: Image.Image) -> tuple[Image.Image, Image.Image | None]:
 
 
 def ocr_card_name(image: Image.Image) -> str:
-    """Extract card name from the top 20% of a corrected card image."""
-    import subprocess
-    import tempfile
+    """Extract card name from the top 20% of a corrected card image using EasyOCR."""
+    if _ocr_reader is None:
+        return ""
 
     w, h = image.size
     top_crop = image.crop((0, 0, w, int(h * 0.2))).convert("RGB")
+    img_array = np.array(top_crop)
 
-    # Use uploads dir for temp file (sandbox-safe)
-    uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-    uploads_dir.mkdir(exist_ok=True)
+    try:
+        results = _ocr_reader.readtext(img_array)
+        # results is list of (bbox, text, confidence)
+        # Return the text with highest confidence
+        if results:
+            best = max(results, key=lambda r: r[2])
+            text = best[1].strip()
+            if text:
+                return text
+    except Exception as e:
+        print(f"OCR failed: {e}")
 
-    for lang in ("jpn", "eng"):
-        try:
-            tmp_path = uploads_dir / "_ocr_tmp.png"
-            top_crop.save(str(tmp_path), format="PNG")
-
-            result = subprocess.run(
-                ["tesseract", str(tmp_path), "stdout", "-l", lang],
-                capture_output=True,
-            )
-            tmp_path.unlink(missing_ok=True)
-
-            text = result.stdout.decode("utf-8", errors="replace").strip()
-            for line in text.splitlines():
-                line = line.strip()
-                if line:
-                    return line
-        except Exception as e:
-            print(f"OCR failed with lang={lang}: {e}")
-            continue
     return ""
 
 

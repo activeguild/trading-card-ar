@@ -12,4 +12,4 @@ sqlalchemy
 pyjwt
 bcrypt
 pydantic[email]
-pytesseract
+easyocr
