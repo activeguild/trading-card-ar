@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db_models import Card, Collection, User
 from app.deps import get_current_user, get_db
 from app.model import ocr_card_name, process_card, save_card_images
+from app.target import generate_image_target
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
 
@@ -107,6 +108,11 @@ def register_card(
     card.corrected_path = corrected_path
     db.commit()
     db.refresh(card)
+
+    # Generate 8thwall image target
+    target_dir = UPLOADS_DIR / "cards" / str(card.id) / "target"
+    corrected_abs = UPLOADS_DIR / corrected_path
+    generate_image_target(corrected_abs, target_dir, f"card_{card.id}")
 
     return _card_to_out(card)
 
