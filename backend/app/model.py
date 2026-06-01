@@ -123,23 +123,39 @@ def process_card(image: Image.Image) -> tuple[Image.Image, Image.Image | None]:
 
 
 def ocr_card_name(image: Image.Image) -> str:
-    """Extract card name from the top 20% of a corrected card image using EasyOCR."""
+    """Extract card name from a corrected card image using EasyOCR.
+
+    Runs OCR on the full card and picks the longest text found in the
+    top 25% of the image, which is where card names typically appear.
+    """
     if _ocr_reader is None:
         return ""
 
     w, h = image.size
-    top_crop = image.crop((0, 0, w, int(h * 0.2))).convert("RGB")
-    img_array = np.array(top_crop)
+    img_rgb = image.convert("RGB")
+
+    # Upscale small images for better recognition
+    if w < 1000:
+        scale = 1000 / w
+        img_rgb = img_rgb.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
+
+    img_array = np.array(img_rgb)
+    scaled_h = img_array.shape[0]
 
     try:
         results = _ocr_reader.readtext(img_array)
-        # results is list of (bbox, text, confidence)
-        # Return the text with highest confidence
-        if results:
-            best = max(results, key=lambda r: r[2])
-            text = best[1].strip()
-            if text:
-                return text
+        # Filter: only text whose bounding box center is in the top 25%
+        top_results = []
+        for bbox, text, conf in results:
+            center_y = (bbox[0][1] + bbox[2][1]) / 2
+            if center_y < scaled_h * 0.25:
+                top_results.append((text.strip(), conf))
+
+        if top_results:
+            # Pick the longest text (card names are typically the longest)
+            best = max(top_results, key=lambda r: len(r[0]))
+            if best[0]:
+                return best[0]
     except Exception as e:
         print(f"OCR failed: {e}")
 
