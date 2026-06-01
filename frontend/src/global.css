@@ -11,4 +11,5 @@ body {
   -webkit-font-smoothing: antialiased;
   background-color: #f8fafc;
   color: #1e293b;
+  touch-action: pan-x pan-y;
 }
