@@ -1,4 +1,7 @@
 import './global.css'
+if (import.meta.env.DEV) {
+  import('vconsole').then(({ default: VConsole }) => new VConsole())
+}
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
