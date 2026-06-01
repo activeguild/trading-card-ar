@@ -42,6 +42,7 @@ export function TransparentVideo({ src, width, height }: Props) {
           videoTexture: { value: null },
         },
         transparent: true,
+        depthWrite: false,
         side: THREE.DoubleSide,
       }),
     [],
@@ -82,7 +83,7 @@ export function TransparentVideo({ src, width, height }: Props) {
   const planeWidth = planeHeight * aspect
 
   return (
-    <mesh>
+    <mesh renderOrder={1}>
       <planeGeometry args={[planeWidth, planeHeight]} />
       <primitive object={material} attach="material" />
     </mesh>
