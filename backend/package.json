@@ -1,0 +1,9 @@
+{
+  "name": "toreka-ar-backend",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@8thwall/image-target-cli": "^1.0.0",
+    "sharp": "^0.34.5"
+  }
+}
