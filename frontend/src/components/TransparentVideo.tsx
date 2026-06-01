@@ -83,7 +83,7 @@ export function TransparentVideo({ src, width, height }: Props) {
   const planeWidth = planeHeight * aspect
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]}>
+    <mesh>
       <planeGeometry args={[planeWidth, planeHeight]} />
       <primitive object={material} attach="material" />
     </mesh>
