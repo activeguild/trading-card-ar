@@ -6,9 +6,9 @@ import numpy as np
 from PIL import Image
 
 EFFECT_FPS = 24
-EFFECT_DURATION = 3  # seconds
+EFFECT_DURATION = 8  # seconds
 EFFECT_TOTAL_FRAMES = EFFECT_FPS * EFFECT_DURATION
-SPEED = 1.5
+SPEED = 0.7
 BORDER_RATIO = 0.04  # 4% of card width for hologram border
 GLOW_WIDTH = 0.06  # 6% of card width for outer glow falloff
 NEON_INTENSITY = 1.2
