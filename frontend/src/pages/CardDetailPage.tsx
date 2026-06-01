@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiJson, apiFetch } from '../lib/api'
+import { QRModal } from '../components/QRModal'
 import styles from './CardDetailPage.module.css'
 
 type CardDetail = {
@@ -17,6 +18,7 @@ export function CardDetailPage() {
   const { token } = useAuth()
   const navigate = useNavigate()
   const [card, setCard] = useState<CardDetail | null>(null)
+  const [showQR, setShowQR] = useState(false)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -36,6 +38,8 @@ export function CardDetailPage() {
 
   if (!card) return null
 
+  const arUrl = `${window.location.origin}/ar/card/${card.id}`
+
   return (
     <div className={styles.page}>
       <h2 className={styles.title}>{card.name}</h2>
@@ -48,7 +52,15 @@ export function CardDetailPage() {
       </div>
       <div className={styles.actions}>
         {card.effect_url ? (
-          <div className={styles.effectBadge}>Effect Applied</div>
+          <>
+            <div className={styles.effectBadge}>Effect Applied</div>
+            <button
+              className={styles.qrBtn}
+              onClick={() => setShowQR(true)}
+            >
+              Show QR for AR
+            </button>
+          </>
         ) : (
           <Link to={`/cards/${card.id}/effect`} className={styles.effectBtn}>
             Add Effect
@@ -58,6 +70,7 @@ export function CardDetailPage() {
           Delete Card
         </button>
       </div>
+      {showQR && <QRModal url={arUrl} onClose={() => setShowQR(false)} />}
     </div>
   )
 }

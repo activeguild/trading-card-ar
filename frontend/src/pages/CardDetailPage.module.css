@@ -64,3 +64,14 @@
   font-size: 14px;
   cursor: pointer;
 }
+
+.qrBtn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0ea5e9;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -8,6 +8,7 @@ import { CollectionDetailPage } from './pages/CollectionDetailPage'
 import { CardRegisterPage } from './pages/CardRegisterPage'
 import { CardDetailPage } from './pages/CardDetailPage'
 import { EffectPage } from './pages/EffectPage'
+import { ARViewerPage } from './pages/ARViewerPage'
 import { HomePage } from './pages/HomePage'
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/ar/card/:id" element={<ARViewerPage />} />
       <Route
         element={
           <ProtectedRoute>
