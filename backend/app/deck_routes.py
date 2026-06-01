@@ -22,7 +22,6 @@ class CardInDeck(BaseModel):
     id: int
     card_id: int
     position: int
-    card_name: str
     corrected_url: str
     effect_url: str | None
 
@@ -100,7 +99,7 @@ def get_deck(
             id=dc.id,
             card_id=dc.card_id,
             position=dc.position,
-            card_name=dc.card.name,
+
             corrected_url=f"/uploads/{dc.card.corrected_path}",
             effect_url=f"/uploads/{dc.card.effect_path}" if dc.card.effect_path else None,
         )
@@ -155,7 +154,6 @@ def add_card_to_deck(
         id=dc.id,
         card_id=dc.card_id,
         position=dc.position,
-        card_name=card.name,
         corrected_url=f"/uploads/{card.corrected_path}",
         effect_url=f"/uploads/{card.effect_path}" if card.effect_path else None,
     )

@@ -15,7 +15,6 @@ UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
 
 class ARCardOut(BaseModel):
     id: int
-    name: str
     marker_url: str
     target_url: str
     effect_url: str | None
@@ -34,7 +33,6 @@ def get_ar_card(card_id: int, db: Session = Depends(get_db)):
 
     return ARCardOut(
         id=card.id,
-        name=card.name,
         marker_url=f"/uploads/{card.corrected_path}",
         target_url=f"/uploads/{target_json}",
         effect_url=f"/uploads/{card.effect_path}" if card.effect_path else None,
@@ -43,7 +41,6 @@ def get_ar_card(card_id: int, db: Session = Depends(get_db)):
 
 class ARDeckCardOut(BaseModel):
     id: int
-    name: str
     target_url: str
     effect_url: str | None
 
@@ -69,7 +66,6 @@ def get_ar_deck(deck_id: int, db: Session = Depends(get_db)):
             continue
         cards.append(ARDeckCardOut(
             id=card.id,
-            name=card.name,
             target_url=f"/uploads/{target_json}",
             effect_url=f"/uploads/{card.effect_path}" if card.effect_path else None,
         ))

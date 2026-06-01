@@ -6,7 +6,6 @@ import styles from './CollectionDetailPage.module.css'
 
 type CardItem = {
   id: number
-  name: string
   corrected_url: string
 }
 
@@ -60,10 +59,9 @@ export function CollectionDetailPage() {
             >
               <img
                 src={card.corrected_url}
-                alt={card.name}
+                alt={`Card ${card.id}`}
                 className={styles.cardImage}
               />
-              <span className={styles.cardName}>{card.name}</span>
             </Link>
           ))}
         </div>

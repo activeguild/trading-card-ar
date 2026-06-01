@@ -14,7 +14,6 @@ type EffectPreset = {
 type CardInfo = {
   id: number
   collection_id: number
-  name: string
   corrected_url: string
   effect_url: string | null
 }
@@ -69,7 +68,7 @@ export function EffectPage() {
       <h2 className={styles.title}>Add Effect</h2>
       <img
         src={card.corrected_url}
-        alt={card.name}
+        alt="Card"
         className={styles.cardPreview}
       />
       <p className={styles.subtitle}>Select Effect</p>

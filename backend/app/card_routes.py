@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.db_models import Card, Collection, User
 from app.deps import get_current_user, get_db
-from app.model import ocr_card_name, process_card, save_card_images
+from app.model import process_card, save_card_images
 from app.target import generate_image_target
 
 router = APIRouter(prefix="/api/cards", tags=["cards"])
@@ -18,7 +18,6 @@ UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
 class CardOut(BaseModel):
     id: int
     collection_id: int
-    name: str
     original_url: str
     corrected_url: str
     effect_url: str | None
@@ -31,7 +30,6 @@ def _card_to_out(card: Card) -> CardOut:
     return CardOut(
         id=card.id,
         collection_id=card.collection_id,
-        name=card.name,
         original_url=f"/uploads/{card.original_path}",
         corrected_url=f"/uploads/{card.corrected_path}",
         effect_url=f"/uploads/{card.effect_path}" if card.effect_path else None,
@@ -86,13 +84,9 @@ def register_card(
             detail="Could not detect card corners for perspective correction",
         )
 
-    # OCR card name from corrected image
-    suggested_name = ocr_card_name(corrected)
-
     # Create card record first to get ID
     card = Card(
         collection_id=collection_id,
-        name=suggested_name or "Untitled",
         original_path="",
         corrected_path="",
     )
@@ -116,26 +110,6 @@ def register_card(
 
     return _card_to_out(card)
 
-
-@router.patch("/{card_id}", response_model=CardOut)
-def update_card(
-    card_id: int,
-    name: str,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    card = db.query(Card).filter(Card.id == card_id).first()
-    if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
-    col = db.query(Collection).filter(
-        Collection.id == card.collection_id, Collection.user_id == user.id
-    ).first()
-    if not col:
-        raise HTTPException(status_code=404, detail="Card not found")
-    card.name = name
-    db.commit()
-    db.refresh(card)
-    return _card_to_out(card)
 
 
 @router.get("/{card_id}", response_model=CardOut)

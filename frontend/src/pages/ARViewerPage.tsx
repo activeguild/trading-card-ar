@@ -10,7 +10,6 @@ import styles from './ARViewerPage.module.css'
 
 type ARCardData = {
   id: number
-  name: string
   marker_url: string
   target_url: string
   effect_url: string | null
@@ -42,7 +41,7 @@ export function ARViewerPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.cardName}>{card.name}</div>
+      <div className={styles.cardName}>AR View</div>
       <EighthwallCanvas
         xrSrc="/xr.js"
         autoStart={true}

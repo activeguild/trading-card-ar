@@ -3,12 +3,9 @@ import base64
 from pathlib import Path
 
 import cv2
-import easyocr
 import numpy as np
 from PIL import Image, ImageOps
 from rembg import remove, new_session
-
-_ocr_reader: easyocr.Reader | None = None
 
 _session = None
 
@@ -18,9 +15,8 @@ CARD_H = 860
 
 
 def load_model() -> None:
-    global _session, _ocr_reader
+    global _session
     _session = new_session("isnet-general-use")
-    _ocr_reader = easyocr.Reader(["ja", "en"], gpu=False)
 
 
 def _image_to_base64(image: Image.Image) -> str:
@@ -121,45 +117,6 @@ def process_card(image: Image.Image) -> tuple[Image.Image, Image.Image | None]:
     corrected = _correct_perspective(image, person_arr[:, :, 3])
     return image, corrected
 
-
-def ocr_card_name(image: Image.Image) -> str:
-    """Extract card name from a corrected card image using EasyOCR.
-
-    Runs OCR on the full card and picks the longest text found in the
-    top 25% of the image, which is where card names typically appear.
-    """
-    if _ocr_reader is None:
-        return ""
-
-    w, h = image.size
-    img_rgb = image.convert("RGB")
-
-    # Upscale small images for better recognition
-    if w < 1000:
-        scale = 1000 / w
-        img_rgb = img_rgb.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
-
-    img_array = np.array(img_rgb)
-    scaled_h = img_array.shape[0]
-
-    try:
-        results = _ocr_reader.readtext(img_array)
-        # Filter: only text whose bounding box center is in the top 25%
-        top_results = []
-        for bbox, text, conf in results:
-            center_y = (bbox[0][1] + bbox[2][1]) / 2
-            if center_y < scaled_h * 0.25:
-                top_results.append((text.strip(), conf))
-
-        if top_results:
-            # Pick the longest text (card names are typically the longest)
-            best = max(top_results, key=lambda r: len(r[0]))
-            if best[0]:
-                return best[0]
-    except Exception as e:
-        print(f"OCR failed: {e}")
-
-    return ""
 
 
 def save_card_images(

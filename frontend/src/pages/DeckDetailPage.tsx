@@ -9,7 +9,6 @@ type CardInDeck = {
   id: number
   card_id: number
   position: number
-  card_name: string
   corrected_url: string
   effect_url: string | null
 }
@@ -22,7 +21,6 @@ type DeckDetail = {
 
 type PickableCard = {
   id: number
-  name: string
   corrected_url: string
 }
 
@@ -120,10 +118,9 @@ export function DeckDetailPage() {
               </button>
               <img
                 src={c.corrected_url}
-                alt={c.card_name}
+                alt={`Card ${c.card_id}`}
                 className={styles.cardImage}
               />
-              <p className={styles.cardName}>{c.card_name}</p>
             </div>
           ))}
         </div>
@@ -146,10 +143,9 @@ export function DeckDetailPage() {
                 >
                   <img
                     src={c.corrected_url}
-                    alt={c.name}
+                    alt={`Card ${c.id}`}
                     className={styles.pickThumb}
                   />
-                  <span className={styles.pickName}>{c.name}</span>
                 </div>
               ))
             )}

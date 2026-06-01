@@ -8,7 +8,6 @@ import styles from './CardDetailPage.module.css'
 type CardDetail = {
   id: number
   collection_id: number
-  name: string
   corrected_url: string
   effect_url: string | null
 }
@@ -42,11 +41,10 @@ export function CardDetailPage() {
 
   return (
     <div className={styles.page}>
-      <h2 className={styles.title}>{card.name}</h2>
       <div className={styles.imageWrapper}>
         <img
           src={card.corrected_url}
-          alt={card.name}
+          alt={`Card ${card.id}`}
           className={styles.image}
         />
       </div>

@@ -45,7 +45,6 @@ class Card(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     collection_id: Mapped[int] = mapped_column(Integer, ForeignKey("collections.id"))
-    name: Mapped[str] = mapped_column(String)
     original_path: Mapped[str] = mapped_column(Text)
     corrected_path: Mapped[str] = mapped_column(Text)
     effect_path: Mapped[str | None] = mapped_column(Text, nullable=True)
