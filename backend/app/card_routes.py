@@ -77,7 +77,8 @@ def register_card(
     except UnidentifiedImageError:
         raise HTTPException(status_code=400, detail="Cannot read image file")
 
-    original, corrected = process_card(image)
+    debug_dir = UPLOADS_DIR / "debug"
+    original, corrected = process_card(image, debug_dir=debug_dir)
     if corrected is None:
         raise HTTPException(
             status_code=422,

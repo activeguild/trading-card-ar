@@ -107,14 +107,29 @@ def segment_image(image: Image.Image) -> dict[str, str | None]:
     return result
 
 
-def process_card(image: Image.Image) -> tuple[Image.Image, Image.Image | None]:
+def process_card(
+    image: Image.Image, debug_dir: Path | None = None
+) -> tuple[Image.Image, Image.Image | None]:
     """Process a card image: background removal + perspective correction.
     Returns (original_rgb, corrected_or_none).
+    If debug_dir is set, saves intermediate images for inspection.
     """
     image = ImageOps.exif_transpose(image.convert("RGB"))
     person = remove(image, session=_session)
     person_arr = np.array(person)
-    corrected = _correct_perspective(image, person_arr[:, :, 3])
+    alpha = person_arr[:, :, 3]
+
+    if debug_dir:
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        image.save(str(debug_dir / "1_original.png"))
+        person.save(str(debug_dir / "2_bg_removed.png"))
+        Image.fromarray(alpha, "L").save(str(debug_dir / "3_mask.png"))
+
+    corrected = _correct_perspective(image, alpha)
+
+    if debug_dir and corrected:
+        corrected.save(str(debug_dir / "4_corrected.png"))
+
     return image, corrected
 
 
