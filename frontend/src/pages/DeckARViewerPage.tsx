@@ -7,6 +7,7 @@ import {
 } from '@j1ngzoue/8thwall-react-three-fiber'
 import { CardPlane } from '../components/CardPlane'
 import { TransparentVideo } from '../components/TransparentVideo'
+import * as THREE from 'three'
 import styles from './DeckARViewerPage.module.css'
 
 type ARDeckCard = {
@@ -55,6 +56,7 @@ export function DeckARViewerPage() {
         autoStart={true}
         disableWorldTracking={true}
         style={{ width: '100%', height: '100%' }}
+        gl={{ toneMapping: THREE.NoToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
       >
         <EighthwallCamera />
         {deck.cards.map((card) => (
