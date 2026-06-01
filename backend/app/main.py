@@ -16,12 +16,12 @@ from app.model import load_model
 from app.routes import router as api_router
 
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+UPLOADS_DIR.mkdir(exist_ok=True)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    UPLOADS_DIR.mkdir(exist_ok=True)
     load_model()
     yield
 
