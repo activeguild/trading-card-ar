@@ -65,6 +65,19 @@
   cursor: pointer;
 }
 
+.arBtn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #10b981;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+
 .qrBtn {
   padding: 12px;
   border: none;

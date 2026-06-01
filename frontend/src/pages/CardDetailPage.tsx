@@ -54,11 +54,14 @@ export function CardDetailPage() {
         {card.effect_url ? (
           <>
             <div className={styles.effectBadge}>Effect Applied</div>
+            <Link to={`/ar/card/${card.id}`} className={styles.arBtn}>
+              AR Preview
+            </Link>
             <button
               className={styles.qrBtn}
               onClick={() => setShowQR(true)}
             >
-              Show QR for AR
+              Share QR
             </button>
           </>
         ) : (

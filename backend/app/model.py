@@ -123,15 +123,17 @@ def ocr_card_name(image: Image.Image) -> str:
     """Extract card name from the top 20% of a corrected card image."""
     w, h = image.size
     top_crop = image.crop((0, 0, w, int(h * 0.2)))
-    try:
-        text = pytesseract.image_to_string(top_crop, lang="jpn+eng").strip()
-        # Take first non-empty line as card name
-        for line in text.splitlines():
-            line = line.strip()
-            if line:
-                return line
-    except Exception:
-        pass
+    # Try jpn+eng first, fallback to eng only
+    for lang in ("jpn+eng", "eng"):
+        try:
+            text = pytesseract.image_to_string(top_crop, lang=lang).strip()
+            for line in text.splitlines():
+                line = line.strip()
+                if line:
+                    return line
+        except Exception as e:
+            print(f"OCR failed with lang={lang}: {e}")
+            continue
     return ""
 
 
