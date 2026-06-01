@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiJson, apiFetch } from '../lib/api'
 import { QRModal } from '../components/QRModal'
@@ -93,9 +93,14 @@ export function DeckDetailPage() {
         <h2 className={styles.title}>{deck.name}</h2>
         <div className={styles.actions}>
           {deck.cards.length > 0 && (
-            <button className={styles.qrBtn} onClick={() => setShowQR(true)}>
-              QR
-            </button>
+            <>
+              <Link to={`/ar/deck/${deck.id}`} className={styles.arBtn}>
+                AR
+              </Link>
+              <button className={styles.qrBtn} onClick={() => setShowQR(true)}>
+                QR
+              </button>
+            </>
           )}
           {deck.cards.length < 5 && (
             <button className={styles.addBtn} onClick={openPicker}>
