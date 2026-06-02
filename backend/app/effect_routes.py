@@ -1,30 +1,15 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db_models import Card, Collection, User
 from app.deps import get_current_user, get_db
-from app.effect import generate_hologram_video
 
 router = APIRouter(prefix="/api", tags=["effects"])
 
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
-
-AVAILABLE_EFFECTS = [
-    {"id": "hologram_border", "name": "Hologram Border", "description": "Rainbow hologram effect on card border"},
-]
-
-
-class EffectPreset(BaseModel):
-    id: str
-    name: str
-    description: str
-
-
-class GenerateRequest(BaseModel):
-    effect_id: str
 
 
 class EffectResult(BaseModel):
@@ -43,34 +28,21 @@ def _verify_card_ownership(card_id: int, user: User, db: Session) -> Card:
     return card
 
 
-@router.get("/effects", response_model=list[EffectPreset])
-def list_effects():
-    return AVAILABLE_EFFECTS
-
-
 @router.post("/cards/{card_id}/effect", response_model=EffectResult)
-def generate_effect(
+def upload_effect(
     card_id: int,
-    req: GenerateRequest,
+    file: UploadFile = File(...),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     card = _verify_card_ownership(card_id, user, db)
 
-    if req.effect_id not in [e["id"] for e in AVAILABLE_EFFECTS]:
-        raise HTTPException(status_code=400, detail="Unknown effect")
-
-    if not card.corrected_path:
-        raise HTTPException(status_code=422, detail="Card has no corrected image")
-
-    corrected_abs = UPLOADS_DIR / card.corrected_path
-    if not corrected_abs.exists():
-        raise HTTPException(status_code=422, detail="Corrected image file not found")
-
     effect_rel = f"cards/{card_id}/effect.mp4"
     effect_abs = UPLOADS_DIR / effect_rel
+    effect_abs.parent.mkdir(parents=True, exist_ok=True)
 
-    generate_hologram_video(corrected_abs, effect_abs)
+    with open(str(effect_abs), "wb") as f:
+        f.write(file.file.read())
 
     card.effect_path = effect_rel
     db.commit()

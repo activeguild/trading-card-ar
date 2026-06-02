@@ -1,108 +1,127 @@
 .page {
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 16px;
-}
-
-.cardPreview {
-  max-width: 200px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  display: block;
-  margin: 0 auto 24px;
-}
-
-.subtitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 12px;
-}
-
-.effectList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.effectCard {
-  padding: 16px;
-  border-radius: 10px;
-  border: 2px solid #e2e8f0;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.effectCardSelected {
-  border-color: #8b5cf6;
-  background-color: #f5f3ff;
-}
-
-.effectName {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.effectDesc {
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 4px;
-}
-
-.generateBtn {
-  width: 100%;
   padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #8b5cf6;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.generateBtn:disabled {
-  background-color: #94a3b8;
-  cursor: not-allowed;
-}
-
-.error {
-  color: #ef4444;
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-.previewSection {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  min-height: calc(100dvh - 52px - 56px);
+  justify-content: center;
 }
 
-.success {
+.preview {
+  max-width: 60%;
+  max-height: 40vh;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  user-select: none;
+}
+
+.toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #8b5cf6;
+}
+
+.toggleLabel {
+  color: #4c1d95;
+}
+
+.colorPicker {
   text-align: center;
-  color: #22c55e;
-  font-weight: 600;
 }
 
-.doneBtn {
+.colorLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.colorOptions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.colorBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s;
+  outline: 3px solid transparent;
+  outline-offset: 2px;
+}
+
+.colorBtn:active {
+  transform: scale(0.9);
+}
+
+.colorBtnActive {
+  outline-color: #8b5cf6;
+}
+
+.saveBtn {
   width: 100%;
-  padding: 12px;
+  max-width: 320px;
+  padding: 14px;
   border: none;
-  border-radius: 8px;
-  background-color: #3b82f6;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
   color: white;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+  transition: transform 0.15s;
+}
+
+.saveBtn:active {
+  transform: scale(0.96);
+}
+
+.progressArea {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.progressBar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  transition: width 0.3s;
+}
+
+.progressText {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 8px;
 }
