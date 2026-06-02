@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { TopPage } from './pages/TopPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { CollectionsPage } from './pages/CollectionsPage'
@@ -16,6 +17,7 @@ import { DeckARViewerPage } from './pages/DeckARViewerPage'
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<TopPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/ar/card/:id" element={<ARViewerPage />} />
@@ -27,7 +29,6 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Navigate to="/collections" replace />} />
         <Route path="/collections" element={<CollectionsPage />} />
         <Route path="/collections/:id" element={<CollectionDetailPage />} />
         <Route

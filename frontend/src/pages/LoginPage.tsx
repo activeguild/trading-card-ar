@@ -17,7 +17,7 @@ export function LoginPage() {
     setSubmitting(true)
     try {
       await login(email, password)
-      navigate('/')
+      navigate('/collections')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -27,8 +27,8 @@ export function LoginPage() {
 
   return (
     <div className={styles.page}>
+      <img src="/logo.webp" alt="トレカAR" className={styles.logo} />
       <div className={styles.card}>
-        <h1 className={styles.title}>Login</h1>
         <form className={styles.form} onSubmit={handleSubmit}>
           <input
             className={styles.input}

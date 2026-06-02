@@ -1,0 +1,56 @@
+.page {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #c7d2fe 0%, #e0e7ff 30%, #fce7f3 70%, #fef3c7 100%);
+  overflow: hidden;
+}
+
+.heroWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 0;
+  padding: 0 0 100px;
+}
+
+.heroImage {
+  width: 100%;
+  max-width: 480px;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 24px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 60%, rgba(255, 255, 255, 0));
+}
+
+.startButton {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 18px 32px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  color: white;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.startButton:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+}
