@@ -29,12 +29,11 @@ export function CardRegisterPage() {
           headers: { Authorization: `Bearer ${token}` },
           body: form,
         })
+        const data = await res.json()
         if (!res.ok) {
-          const body = await res.json().catch(() => null)
-          throw new ApiError(res.status, body?.detail ?? `Error: ${res.status}`)
+          throw new ApiError(res.status, data?.detail ?? `Error: ${res.status}`)
         }
-        const card = await res.json()
-        navigate(`/cards/${card.id}/effect`, { replace: true })
+        navigate(`/cards/${data.id}/effect`, { replace: true })
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Processing failed')
       } finally {

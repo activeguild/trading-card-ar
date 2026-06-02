@@ -21,6 +21,7 @@ export function ARViewerPage() {
   const { id } = useParams<{ id: string }>()
   const [card, setCard] = useState<ARCardData | null>(null)
   const [error, setError] = useState('')
+  const [arKey, setArKey] = useState(0)
 
   useEffect(() => {
     if (!id) return
@@ -33,8 +34,19 @@ export function ARViewerPage() {
       .catch((e) => setError(e.message))
   }, [id])
 
+  const handleRetry = () => {
+    setArKey((k) => k + 1)
+  }
+
   if (error) {
-    return <div className={styles.loading}>{error}</div>
+    return (
+      <div className={styles.loading}>
+        <p>{error}</p>
+        <button className={styles.retryBtn} onClick={() => window.location.reload()}>
+          Retry
+        </button>
+      </div>
+    )
   }
 
   if (!card) {
@@ -44,12 +56,17 @@ export function ARViewerPage() {
   return (
     <div className={styles.container}>
       <div className={styles.cardName}>AR View</div>
+      <button className={styles.retryFloating} onClick={handleRetry}>
+        Reload
+      </button>
       <EighthwallCanvas
+        key={arKey}
         xrSrc="/xr.js"
         autoStart={true}
         disableWorldTracking={true}
         style={{ width: '100%', height: '100%' }}
         gl={{ toneMapping: THREE.NoToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
+        onError={() => setError('AR failed to load')}
       >
         <EighthwallCamera />
         <ImageTracker targetImage={card.target_url}>

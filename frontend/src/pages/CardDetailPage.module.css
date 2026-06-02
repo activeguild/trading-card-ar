@@ -2,16 +2,19 @@
   padding: 16px;
   max-width: 480px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100dvh - 52px - 56px);
+  justify-content: center;
 }
 
 .imageWrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .image {
-  max-width: 240px;
+  max-width: 200px;
   width: 100%;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -20,21 +23,27 @@
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
 }
 
 .effectBtn {
   padding: 14px;
   border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
   color: white;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+  transition: transform 0.15s;
+}
+
+.effectBtn:active {
+  transform: scale(0.96);
 }
 
 .effectBadge {
@@ -50,36 +59,46 @@
 .arBtn {
   padding: 14px;
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #10b981, #34d399);
   color: white;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: transform 0.15s;
+}
+
+.arBtn:active {
+  transform: scale(0.96);
 }
 
 .qrBtn {
   padding: 14px;
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #0ea5e9, #38bdf8);
   color: white;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  transition: transform 0.15s;
+}
+
+.qrBtn:active {
+  transform: scale(0.96);
 }
 
 .deleteBtn {
-  padding: 12px;
+  padding: 10px;
   border: 2px solid #fca5a5;
   border-radius: 14px;
   background: none;
   color: #ef4444;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }

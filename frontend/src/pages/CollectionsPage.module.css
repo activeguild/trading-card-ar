@@ -1,12 +1,15 @@
 .page {
   padding: 16px;
+  height: calc(100dvh - 52px - 56px);
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .title {
@@ -18,19 +21,21 @@
 .addBtn {
   padding: 10px 20px;
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
   color: white;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .list {
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .card {
@@ -40,7 +45,7 @@
   padding: 16px 20px;
   background: white;
   border-radius: 16px;
-  border: none;
+  border-left: 4px solid #8b5cf6;
   text-decoration: none;
   color: inherit;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -58,11 +63,11 @@
 }
 
 .cardCount {
-  font-size: 13px;
-  color: #7c3aed;
-  font-weight: 600;
-  background: #ede9fe;
-  padding: 4px 10px;
+  font-size: 12px;
+  color: white;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  padding: 4px 12px;
   border-radius: 12px;
 }
 
@@ -86,8 +91,8 @@
 
 .modal {
   background: white;
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 24px;
+  padding: 28px;
   width: 100%;
   max-width: 320px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
@@ -98,17 +103,17 @@
   font-weight: 800;
   margin-bottom: 16px;
   color: #4c1d95;
+  text-align: center;
 }
 
 .modalInput {
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 16px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 16px;
   margin-bottom: 16px;
   outline: none;
-  transition: border-color 0.2s;
 }
 
 .modalInput:focus {
@@ -117,25 +122,28 @@
 
 .modalActions {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+  gap: 10px;
 }
 
 .modalCancel {
-  padding: 10px 20px;
+  flex: 1;
+  padding: 12px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: none;
   cursor: pointer;
   font-weight: 600;
+  font-size: 15px;
 }
 
 .modalSubmit {
-  padding: 10px 20px;
+  flex: 1;
+  padding: 12px;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(135deg, #6366f1, #a855f7);
   color: white;
   font-weight: 700;
   cursor: pointer;
+  font-size: 15px;
 }

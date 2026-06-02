@@ -8,8 +8,10 @@
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 16px;
   background: black;
   color: white;
   font-size: 16px;
@@ -29,4 +31,30 @@
   font-weight: 600;
   z-index: 5;
   pointer-events: none;
+}
+
+.retryBtn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.retryFloating {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 5;
+  cursor: pointer;
 }
