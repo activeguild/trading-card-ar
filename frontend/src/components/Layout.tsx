@@ -1,13 +1,28 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import styles from './Layout.module.css'
 
 export function Layout() {
   const { logout } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Show back button on sub-pages (anything deeper than /collections or /decks)
+  const isSubPage =
+    location.pathname !== '/collections' &&
+    location.pathname !== '/decks' &&
+    location.pathname !== '/'
 
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
+        {isSubPage ? (
+          <button className={styles.backBtn} onClick={() => navigate(-1)}>
+            &larr;
+          </button>
+        ) : (
+          <span />
+        )}
         <h1 className={styles.headerTitle}>トレカAR</h1>
         <button className={styles.logoutBtn} onClick={logout}>
           Logout
