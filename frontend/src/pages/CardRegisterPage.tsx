@@ -33,7 +33,8 @@ export function CardRegisterPage() {
           const body = await res.json().catch(() => null)
           throw new ApiError(res.status, body?.detail ?? `Error: ${res.status}`)
         }
-        navigate(`/collections/${collectionId}`)
+        const card = await res.json()
+        navigate(`/cards/${card.id}/effect`, { replace: true })
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Processing failed')
       } finally {
