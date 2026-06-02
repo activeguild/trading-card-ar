@@ -16,18 +16,14 @@ export function TopPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.heroWrapper}>
-        <img
-          src="/top-hero.webp"
-          alt="トレカAR - カードをかざせば、ARがはじまる。"
-          className={styles.heroImage}
-        />
-      </div>
-      <div className={styles.bottomBar}>
-        <button className={styles.startButton} onClick={handleStart}>
-          はじめる
-        </button>
-      </div>
+      <img
+        src="/top-hero.webp"
+        alt="トレカAR - カードをかざせば、ARがはじまる。"
+        className={styles.heroImage}
+      />
+      <button className={styles.startButton} onClick={handleStart}>
+        はじめる
+      </button>
     </div>
   )
 }
