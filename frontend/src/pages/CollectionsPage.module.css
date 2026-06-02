@@ -10,20 +10,21 @@
 }
 
 .title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 20px;
+  font-weight: 800;
+  color: #4c1d95;
 }
 
 .addBtn {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
-  background-color: #3b82f6;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
   color: white;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
 .list {
@@ -36,29 +37,40 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 16px 20px;
   background: white;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  border: none;
   text-decoration: none;
   color: inherit;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s;
+}
+
+.card:active {
+  transform: scale(0.97);
 }
 
 .cardName {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1e293b;
 }
 
 .cardCount {
   font-size: 13px;
-  color: #94a3b8;
+  color: #7c3aed;
+  font-weight: 600;
+  background: #ede9fe;
+  padding: 4px 10px;
+  border-radius: 12px;
 }
 
 .empty {
   text-align: center;
   color: #94a3b8;
   padding: 48px 0;
+  font-size: 15px;
 }
 
 .modalOverlay {
@@ -74,26 +86,33 @@
 
 .modal {
   background: white;
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 24px;
   width: 100%;
   max-width: 320px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
 }
 
 .modalTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 16px;
+  color: #4c1d95;
 }
 
 .modalInput {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 16px;
   margin-bottom: 16px;
   outline: none;
+  transition: border-color 0.2s;
+}
+
+.modalInput:focus {
+  border-color: #a855f7;
 }
 
 .modalActions {
@@ -103,19 +122,20 @@
 }
 
 .modalCancel {
-  padding: 8px 16px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
   background: none;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .modalSubmit {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
-  background-color: #3b82f6;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
   color: white;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
 }

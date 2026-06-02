@@ -4,14 +4,6 @@
   margin: 0 auto;
 }
 
-.title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
 .imageWrapper {
   display: flex;
   justify-content: center;
@@ -19,10 +11,10 @@
 }
 
 .image {
-  max-width: 280px;
+  max-width: 240px;
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .actions {
@@ -32,59 +24,62 @@
 }
 
 .effectBtn {
-  padding: 12px;
+  padding: 14px;
   border: none;
-  border-radius: 8px;
-  background-color: #8b5cf6;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
   color: white;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
 .effectBadge {
   padding: 12px;
-  border-radius: 8px;
-  background-color: #f5f3ff;
-  border: 1px solid #c4b5fd;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ede9fe, #fce7f3);
   color: #7c3aed;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
+}
+
+.arBtn {
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.qrBtn {
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 }
 
 .deleteBtn {
   padding: 12px;
-  border: 1px solid #fca5a5;
-  border-radius: 8px;
+  border: 2px solid #fca5a5;
+  border-radius: 14px;
   background: none;
   color: #ef4444;
   font-size: 14px;
-  cursor: pointer;
-}
-
-.arBtn {
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #10b981;
-  color: white;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-}
-
-.qrBtn {
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #0ea5e9;
-  color: white;
-  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }

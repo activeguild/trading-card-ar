@@ -10,21 +10,22 @@
 }
 
 .title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 20px;
+  font-weight: 800;
+  color: #4c1d95;
 }
 
 .addBtn {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
-  background-color: #3b82f6;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
   color: white;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: none;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
 .grid {
@@ -38,10 +39,16 @@
   flex-direction: column;
   background: white;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: none;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s;
+}
+
+.card:active {
+  transform: scale(0.95);
 }
 
 .cardImage {
@@ -50,19 +57,9 @@
   object-fit: cover;
 }
 
-.cardName {
-  padding: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1e293b;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .empty {
   text-align: center;
   color: #94a3b8;
   padding: 48px 0;
+  font-size: 15px;
 }
