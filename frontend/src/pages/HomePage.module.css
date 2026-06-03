@@ -1,9 +1,50 @@
 .page {
-  padding: 24px 16px;
-  text-align: center;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  min-height: calc(100dvh - 52px - 56px);
+  justify-content: center;
 }
 
-.message {
-  color: #64748b;
-  font-size: 16px;
+.logo {
+  width: 200px;
+  height: auto;
+}
+
+.menu {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.menuItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  background: white;
+  border-radius: 20px;
+  text-decoration: none;
+  color: #1e293b;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s;
+}
+
+.menuItem:active {
+  transform: scale(0.96);
+}
+
+.menuIcon {
+  font-size: 32px;
+}
+
+.menuLabel {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4c1d95;
 }

@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { TopPage } from './pages/TopPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { HomePage } from './pages/HomePage'
 import { CollectionsPage } from './pages/CollectionsPage'
 import { CollectionDetailPage } from './pages/CollectionDetailPage'
 import { CardRegisterPage } from './pages/CardRegisterPage'
@@ -29,6 +30,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
+        <Route path="/home" element={<HomePage />} />
         <Route path="/collections" element={<CollectionsPage />} />
         <Route path="/collections/:id" element={<CollectionDetailPage />} />
         <Route

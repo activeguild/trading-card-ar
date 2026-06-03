@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiJson } from '../lib/api'
 import styles from './CollectionsPage.module.css'
@@ -15,6 +15,7 @@ export function CollectionsPage() {
   const { token } = useAuth()
   const [collections, setCollections] = useState<Collection[]>([])
   const [showModal, setShowModal] = useState(false)
+  const navigate = useNavigate()
   const [newName, setNewName] = useState('')
 
   const load = useCallback(async () => {
@@ -29,14 +30,14 @@ export function CollectionsPage() {
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault()
     if (!newName.trim()) return
-    await apiJson<Collection>('/api/collections', token, {
+    const created = await apiJson<Collection>('/api/collections', token, {
       method: 'POST',
       body: JSON.stringify({ name: newName.trim() }),
       headers: { 'Content-Type': 'application/json' },
     })
     setNewName('')
     setShowModal(false)
-    load()
+    navigate(`/collections/${created.id}`)
   }
 
   return (

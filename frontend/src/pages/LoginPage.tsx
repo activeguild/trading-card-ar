@@ -17,7 +17,7 @@ export function LoginPage() {
     setSubmitting(true)
     try {
       await login(email, password)
-      navigate('/collections')
+      navigate('/home')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {

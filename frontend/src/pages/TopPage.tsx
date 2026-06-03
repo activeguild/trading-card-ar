@@ -8,7 +8,7 @@ export function TopPage() {
 
   const handleStart = () => {
     if (token) {
-      navigate('/collections')
+      navigate('/home')
     } else {
       navigate('/login')
     }

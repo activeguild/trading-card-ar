@@ -9,6 +9,7 @@ export function Layout() {
 
   // Show back button on sub-pages (anything deeper than /collections or /decks)
   const isSubPage =
+    location.pathname !== '/home' &&
     location.pathname !== '/collections' &&
     location.pathname !== '/decks' &&
     location.pathname !== '/'
