@@ -4,8 +4,10 @@
  */
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
-import coreURL from '@ffmpeg/core/dist/umd/ffmpeg-core.js?url'
-import wasmURL from '@ffmpeg/core/dist/umd/ffmpeg-core.wasm?url'
+// @ts-ignore - Vite ?url import from @ffmpeg/core package
+import coreURL from '@ffmpeg/core?url'
+// @ts-ignore - Vite ?url import from @ffmpeg/core wasm
+import wasmURL from '@ffmpeg/core/wasm?url'
 import { type EffectData, type EffectSettings, renderEffectOnlyFrame } from './effectRenderer'
 
 const FPS = 24
