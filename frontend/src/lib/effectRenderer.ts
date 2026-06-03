@@ -11,7 +11,7 @@ export type EffectSettings = {
 }
 
 const BORDER_RATIO = 0.04
-const GLOW_WIDTH = 0.06
+const GLOW_WIDTH = 0.035
 const SPEED = 0.7
 const NEON_INTENSITY = 1.2
 const GLOW_PADDING_RATIO = 0.05 // 5% padding on each side for outer glow

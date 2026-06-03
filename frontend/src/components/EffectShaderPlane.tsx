@@ -24,7 +24,7 @@ uniform vec2 uPadding;   // padding ratio
 varying vec2 vUv;
 
 const float BORDER_RATIO = 0.04;
-const float GLOW_WIDTH = 0.06;
+const float GLOW_WIDTH = 0.035;
 const float SPEED = 0.7;
 const float NEON_INTENSITY = 1.2;
 
@@ -126,10 +126,11 @@ void main() {
     float dist = sqrt(dx * dx + dy * dy) / (cardRight - cardLeft);
 
     if (dist < GLOW_WIDTH) {
-      float str = sqrt(1.0 - dist / GLOW_WIDTH);
+      float str = 1.0 - dist / GLOW_WIDTH;
+      str = str * str;
       float pulse = sin(uTime * SPEED * 2.0) * 0.2 + 0.8;
       float travel = sin((xn - yn) * 4.0 + uTime * SPEED * 2.5) * 0.3 + 0.7;
-      str *= pulse * travel * 1.5;
+      str *= pulse * travel * 0.8;
       er += uGlowColor.r * str;
       eg += uGlowColor.g * str;
       eb += uGlowColor.b * str;
