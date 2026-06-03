@@ -9,11 +9,11 @@ type Summary = {
 }
 
 const RANKS = [
-  { name: 'N', min: 0, max: 5, color: '#94a3b8', bg: '#f1f5f9' },
-  { name: 'R', min: 5, max: 15, color: '#3b82f6', bg: '#dbeafe' },
-  { name: 'SR', min: 15, max: 30, color: '#a855f7', bg: '#f3e8ff' },
-  { name: 'SSR', min: 30, max: 50, color: '#f59e0b', bg: '#fef3c7' },
-  { name: 'UR', min: 50, max: Infinity, color: '#ef4444', bg: '#fee2e2' },
+  { name: 'N', min: 0, max: 50, color: '#94a3b8', bg: '#f1f5f9' },
+  { name: 'R', min: 50, max: 150, color: '#3b82f6', bg: '#dbeafe' },
+  { name: 'SR', min: 150, max: 300, color: '#a855f7', bg: '#f3e8ff' },
+  { name: 'SSR', min: 300, max: 500, color: '#f59e0b', bg: '#fef3c7' },
+  { name: 'UR', min: 500, max: Infinity, color: '#ef4444', bg: '#fee2e2' },
 ]
 
 function getRank(count: number) {
