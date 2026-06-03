@@ -1,90 +1,92 @@
 /**
  * Encode effect frames to stacked mp4 (color + alpha) using ffmpeg.wasm.
+ * Writes PNG frames one-by-one to FFmpeg FS, then encodes with frame%05d.png pattern.
  */
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
+import coreURL from '@ffmpeg/core/dist/umd/ffmpeg-core.js?url'
+import wasmURL from '@ffmpeg/core/dist/umd/ffmpeg-core.wasm?url'
 import { type EffectData, type EffectSettings, renderEffectOnlyFrame } from './effectRenderer'
 
 const FPS = 24
 const DURATION = 8
 const TOTAL_FRAMES = FPS * DURATION
 
-let ffmpeg: FFmpeg | null = null
-
-async function getFFmpeg(): Promise<FFmpeg> {
-  if (ffmpeg) return ffmpeg
-  ffmpeg = new FFmpeg()
-  // Use single-threaded core to avoid CORS requirements
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd'
-  await ffmpeg.load({
-    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-  })
-  return ffmpeg
-}
-
 export async function encodeEffectVideo(
   data: EffectData,
   settings: EffectSettings,
   onProgress?: (pct: number) => void,
 ): Promise<Blob> {
-  const ff = await getFFmpeg()
   const { totalWidth: tw, totalHeight: th } = data
   const stackedH = th * 2
 
-  // Generate and write each frame as raw RGB
-  const frameSize = tw * stackedH * 3
-  const rawBuffer = new Uint8Array(TOTAL_FRAMES * frameSize)
+  // 1. Load FFmpeg (from npm package, no CDN dependency)
+  const ffmpeg = new FFmpeg()
+  await ffmpeg.load({
+    coreURL: await toBlobURL(coreURL, 'text/javascript'),
+    wasmURL: await toBlobURL(wasmURL, 'application/wasm'),
+  })
+
+  // 2. Render frames as PNGs and write to FFmpeg FS
+  const outCanvas = document.createElement('canvas')
+  outCanvas.width = tw
+  outCanvas.height = stackedH
+  const ctx = outCanvas.getContext('2d')!
 
   for (let i = 0; i < TOTAL_FRAMES; i++) {
     const time = i / FPS
     const { color, alpha } = renderEffectOnlyFrame(data, time, settings)
 
-    const offset = i * frameSize
     // Top half: color
-    for (let y = 0; y < th; y++) {
-      for (let x = 0; x < tw; x++) {
-        const si = (y * tw + x) * 3
-        const di = offset + (y * tw + x) * 3
-        rawBuffer[di] = color[si]
-        rawBuffer[di + 1] = color[si + 1]
-        rawBuffer[di + 2] = color[si + 2]
-      }
+    const colorImageData = ctx.createImageData(tw, th)
+    for (let p = 0; p < tw * th; p++) {
+      colorImageData.data[p * 4] = color[p * 3]
+      colorImageData.data[p * 4 + 1] = color[p * 3 + 1]
+      colorImageData.data[p * 4 + 2] = color[p * 3 + 2]
+      colorImageData.data[p * 4 + 3] = 255
     }
-    // Bottom half: alpha as grayscale RGB
-    for (let y = 0; y < th; y++) {
-      for (let x = 0; x < tw; x++) {
-        const a = alpha[y * tw + x]
-        const di = offset + ((y + th) * tw + x) * 3
-        rawBuffer[di] = a
-        rawBuffer[di + 1] = a
-        rawBuffer[di + 2] = a
-      }
+    ctx.putImageData(colorImageData, 0, 0)
+
+    // Bottom half: alpha as grayscale
+    const alphaImageData = ctx.createImageData(tw, th)
+    for (let p = 0; p < tw * th; p++) {
+      const a = alpha[p]
+      alphaImageData.data[p * 4] = a
+      alphaImageData.data[p * 4 + 1] = a
+      alphaImageData.data[p * 4 + 2] = a
+      alphaImageData.data[p * 4 + 3] = 255
     }
+    ctx.putImageData(alphaImageData, 0, th)
+
+    // Write as PNG
+    const blob = await new Promise<Blob>((resolve) => {
+      outCanvas.toBlob((b) => resolve(b!), 'image/png')
+    })
+    await ffmpeg.writeFile(
+      `frame${String(i).padStart(5, '0')}.png`,
+      new Uint8Array(await blob.arrayBuffer()),
+    )
 
     onProgress?.(Math.round(((i + 1) / TOTAL_FRAMES) * 80))
   }
 
-  await ff.writeFile('input.raw', rawBuffer)
+  // 3. Encode with ffmpeg
+  const padW = Math.ceil(tw / 2) * 2
+  const padH = Math.ceil(stackedH / 2) * 2
 
-  await ff.exec([
-    '-f', 'rawvideo',
-    '-pix_fmt', 'rgb24',
-    '-s', `${tw}x${stackedH}`,
-    '-r', String(FPS),
-    '-i', 'input.raw',
+  await ffmpeg.exec([
+    '-framerate', String(FPS),
+    '-i', 'frame%05d.png',
+    '-vf', `pad=${padW}:${padH}`,
     '-c:v', 'libx264',
-    '-pix_fmt', 'yuv420p',
-    '-preset', 'fast',
     '-crf', '23',
+    '-pix_fmt', 'yuv420p',
     '-y', 'output.mp4',
   ])
 
   onProgress?.(95)
 
-  const output = await ff.readFile('output.mp4')
-  await ff.deleteFile('input.raw')
-  await ff.deleteFile('output.mp4')
+  const output = await ffmpeg.readFile('output.mp4')
 
   onProgress?.(100)
 
