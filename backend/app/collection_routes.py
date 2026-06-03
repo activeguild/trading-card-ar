@@ -2,17 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.db_models import Card, Collection, Deck, User
+from app.db_models import Card, Collection, User
 from app.deps import get_current_user, get_db
 
 router = APIRouter(prefix="/api/collections", tags=["collections"])
 
 
 class UserSummary(BaseModel):
-    collection_count: int
     card_count: int
-    deck_count: int
-    effect_count: int
 
 
 class CollectionCreate(BaseModel):
@@ -33,19 +30,10 @@ def get_summary(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    cols = db.query(Collection).filter(Collection.user_id == user.id).all()
-    total_cards = sum(len(c.cards) for c in cols)
-    effect_count = db.query(Card).join(Collection).filter(
+    total_cards = db.query(Card).join(Collection).filter(
         Collection.user_id == user.id,
-        Card.effect_settings.isnot(None),
     ).count()
-    deck_count = db.query(Deck).filter(Deck.user_id == user.id).count()
-    return UserSummary(
-        collection_count=len(cols),
-        card_count=total_cards,
-        deck_count=deck_count,
-        effect_count=effect_count,
-    )
+    return UserSummary(card_count=total_cards)
 
 
 @router.get("", response_model=list[CollectionOut])

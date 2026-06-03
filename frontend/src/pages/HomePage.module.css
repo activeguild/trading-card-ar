@@ -13,42 +13,81 @@
   height: auto;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.rankCard {
   width: 100%;
-  max-width: 320px;
-}
-
-.statItem {
+  max-width: 360px;
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.rankHeader {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  padding: 16px 12px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.statValue {
-  font-size: 28px;
-  font-weight: 800;
-  color: #6366f1;
+.rankBadge {
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+  padding: 4px 16px;
+  border-radius: 10px;
+  letter-spacing: 0.05em;
 }
 
-.statLabel {
-  font-size: 12px;
+.cardCount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.progressBar {
+  height: 12px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.rankFooter {
+  text-align: center;
+}
+
+.nextRank {
+  font-size: 13px;
+  color: #64748b;
   font-weight: 600;
-  color: #94a3b8;
+}
+
+.allRanks {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rankDot {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 8px;
+  letter-spacing: 0.03em;
 }
 
 .menu {
   display: flex;
   gap: 12px;
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
 }
 
 .menuItem {
