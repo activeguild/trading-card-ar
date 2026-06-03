@@ -34,6 +34,14 @@ export function Layout() {
       </main>
       <nav className={styles.tabBar}>
         <NavLink
+          to="/home"
+          className={({ isActive }) =>
+            `${styles.tab} ${isActive ? styles.tabActive : ''}`
+          }
+        >
+          Home
+        </NavLink>
+        <NavLink
           to="/collections"
           className={({ isActive }) =>
             `${styles.tab} ${isActive ? styles.tabActive : ''}`
