@@ -6,22 +6,39 @@ import {
   ImageTracker,
 } from '@j1ngzoue/8thwall-react-three-fiber'
 import { CardPlane } from '../components/CardPlane'
-import { TransparentVideo } from '../components/TransparentVideo'
+import { EffectShaderPlane } from '../components/EffectShaderPlane'
+import type { EffectSettings } from '../lib/effectRenderer'
 import * as THREE from 'three'
 import styles from './DeckARViewerPage.module.css'
 
+type ApiEffectSettings = {
+  hologram: boolean
+  neon: boolean
+  glow: boolean
+  glow_color: [number, number, number]
+}
+
 type ARDeckCard = {
   id: number
-  name: string
   marker_url: string
   target_url: string
   effect_url: string | null
+  effect_settings: ApiEffectSettings | null
 }
 
 type ARDeckData = {
   id: number
   name: string
   cards: ARDeckCard[]
+}
+
+function toEffectSettings(api: ApiEffectSettings): EffectSettings {
+  return {
+    hologram: api.hologram,
+    neon: api.neon,
+    glow: api.glow,
+    glowColor: api.glow_color,
+  }
 }
 
 export function DeckARViewerPage() {
@@ -59,18 +76,22 @@ export function DeckARViewerPage() {
         gl={{ toneMapping: THREE.NoToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
       >
         <EighthwallCamera />
-        {deck.cards.map((card) => (
-          <ImageTracker key={card.id} targetImage={card.target_url}>
-            <CardPlane src={card.marker_url} width={590} height={860} />
-            {card.effect_url && (
-              <TransparentVideo
-                src={card.effect_url}
-                width={590}
-                height={860}
-              />
-            )}
-          </ImageTracker>
-        ))}
+        {deck.cards.map((card) => {
+          const effectSettings = card.effect_settings ? toEffectSettings(card.effect_settings) : null
+          return (
+            <ImageTracker key={card.id} targetImage={card.target_url}>
+              <CardPlane src={card.marker_url} width={590} height={860} />
+              {effectSettings && (
+                <EffectShaderPlane
+                  cardImageUrl={card.marker_url}
+                  settings={effectSettings}
+                  width={590}
+                  height={860}
+                />
+              )}
+            </ImageTracker>
+          )
+        })}
         <ambientLight intensity={1} />
       </EighthwallCanvas>
     </div>

@@ -1,6 +1,6 @@
-from pathlib import Path
+import json
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -9,11 +9,16 @@ from app.deps import get_current_user, get_db
 
 router = APIRouter(prefix="/api", tags=["effects"])
 
-UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+
+class EffectSettings(BaseModel):
+    hologram: bool = True
+    neon: bool = True
+    glow: bool = True
+    glow_color: list[float] = [0.66, 0.33, 0.97]  # RGB 0-1
 
 
-class EffectResult(BaseModel):
-    effect_url: str
+class EffectSettingsResult(BaseModel):
+    effect_settings: EffectSettings | None
 
 
 def _verify_card_ownership(card_id: int, user: User, db: Session) -> Card:
@@ -28,40 +33,26 @@ def _verify_card_ownership(card_id: int, user: User, db: Session) -> Card:
     return card
 
 
-@router.post("/cards/{card_id}/effect", response_model=EffectResult)
-def upload_effect(
+@router.post("/cards/{card_id}/effect-settings", response_model=EffectSettingsResult)
+def save_effect_settings(
     card_id: int,
-    file: UploadFile = File(...),
+    settings: EffectSettings,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     card = _verify_card_ownership(card_id, user, db)
-
-    effect_rel = f"cards/{card_id}/effect.mp4"
-    effect_abs = UPLOADS_DIR / effect_rel
-    effect_abs.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(str(effect_abs), "wb") as f:
-        f.write(file.file.read())
-
-    card.effect_path = effect_rel
+    card.effect_settings = json.dumps(settings.model_dump())
     db.commit()
     db.refresh(card)
+    return EffectSettingsResult(effect_settings=settings)
 
-    return EffectResult(effect_url=f"/uploads/{effect_rel}")
 
-
-@router.delete("/cards/{card_id}/effect", status_code=204)
-def delete_effect(
+@router.delete("/cards/{card_id}/effect-settings", status_code=204)
+def delete_effect_settings(
     card_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     card = _verify_card_ownership(card_id, user, db)
-
-    if card.effect_path:
-        effect_abs = UPLOADS_DIR / card.effect_path
-        if effect_abs.exists():
-            effect_abs.unlink()
-        card.effect_path = None
-        db.commit()
+    card.effect_settings = None
+    db.commit()

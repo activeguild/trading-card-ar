@@ -13,11 +13,19 @@ router = APIRouter(prefix="/api/ar", tags=["ar"])
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
 
 
+class AREffectSettings(BaseModel):
+    hologram: bool = True
+    neon: bool = True
+    glow: bool = True
+    glow_color: list[float] = [0.66, 0.33, 0.97]
+
+
 class ARCardOut(BaseModel):
     id: int
     marker_url: str
     target_url: str
     effect_url: str | None
+    effect_settings: AREffectSettings | None
 
 
 @router.get("/card/{card_id}", response_model=ARCardOut)
@@ -31,11 +39,17 @@ def get_ar_card(card_id: int, db: Session = Depends(get_db)):
     if not target_abs.exists():
         raise HTTPException(status_code=404, detail="Image target not found")
 
+    import json
+    settings = None
+    if card.effect_settings:
+        settings = AREffectSettings(**json.loads(card.effect_settings))
+
     return ARCardOut(
         id=card.id,
         marker_url=f"/uploads/{card.corrected_path}",
         target_url=f"/uploads/{target_json}",
         effect_url=f"/uploads/{card.effect_path}" if card.effect_path else None,
+        effect_settings=settings,
     )
 
 
@@ -44,6 +58,7 @@ class ARDeckCardOut(BaseModel):
     marker_url: str
     target_url: str
     effect_url: str | None
+    effect_settings: AREffectSettings | None
 
 
 class ARDeckOut(BaseModel):
@@ -65,11 +80,16 @@ def get_ar_deck(deck_id: int, db: Session = Depends(get_db)):
         target_abs = UPLOADS_DIR / target_json
         if not target_abs.exists():
             continue
+        import json
+        card_settings = None
+        if card.effect_settings:
+            card_settings = AREffectSettings(**json.loads(card.effect_settings))
         cards.append(ARDeckCardOut(
             id=card.id,
             marker_url=f"/uploads/{card.corrected_path}",
             target_url=f"/uploads/{target_json}",
             effect_url=f"/uploads/{card.effect_path}" if card.effect_path else None,
+            effect_settings=card_settings,
         ))
 
     return ARDeckOut(id=deck.id, name=deck.name, cards=cards)

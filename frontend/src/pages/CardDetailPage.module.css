@@ -10,6 +10,7 @@
 }
 
 .imageWrapper {
+  position: relative;
   margin-bottom: 20px;
 }
 
@@ -19,6 +20,13 @@
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
+
+.effectCanvas {
+  max-width: 220px;
+  width: 100%;
+  border-radius: 12px;
+}
+
 
 .actions {
   display: flex;

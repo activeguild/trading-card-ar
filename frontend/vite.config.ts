@@ -6,6 +6,10 @@ export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
     host: '0.0.0.0',
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
     proxy: {
       '/api': 'http://localhost:8000',
       '/uploads': 'http://localhost:8000',

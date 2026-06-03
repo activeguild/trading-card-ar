@@ -6,15 +6,33 @@ import {
   ImageTracker,
 } from '@j1ngzoue/8thwall-react-three-fiber'
 import { CardPlane } from '../components/CardPlane'
-import { TransparentVideo } from '../components/TransparentVideo'
+import { EffectShaderPlane } from '../components/EffectShaderPlane'
+import type { EffectSettings } from '../lib/effectRenderer'
 import * as THREE from 'three'
 import styles from './ARViewerPage.module.css'
+
+type ApiEffectSettings = {
+  hologram: boolean
+  neon: boolean
+  glow: boolean
+  glow_color: [number, number, number]
+}
 
 type ARCardData = {
   id: number
   marker_url: string
   target_url: string
   effect_url: string | null
+  effect_settings: ApiEffectSettings | null
+}
+
+function toEffectSettings(api: ApiEffectSettings): EffectSettings {
+  return {
+    hologram: api.hologram,
+    neon: api.neon,
+    glow: api.glow,
+    glowColor: api.glow_color,
+  }
 }
 
 export function ARViewerPage() {
@@ -53,6 +71,8 @@ export function ARViewerPage() {
     return <div className={styles.loading}>Loading AR...</div>
   }
 
+  const effectSettings = card.effect_settings ? toEffectSettings(card.effect_settings) : null
+
   return (
     <div className={styles.container}>
       <div className={styles.cardName}>AR View</div>
@@ -71,9 +91,10 @@ export function ARViewerPage() {
         <EighthwallCamera />
         <ImageTracker targetImage={card.target_url}>
           <CardPlane src={card.marker_url} width={590} height={860} />
-          {card.effect_url && (
-            <TransparentVideo
-              src={card.effect_url}
+          {effectSettings && (
+            <EffectShaderPlane
+              cardImageUrl={card.marker_url}
+              settings={effectSettings}
               width={590}
               height={860}
             />

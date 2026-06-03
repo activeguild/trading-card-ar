@@ -48,6 +48,7 @@ class Card(Base):
     original_path: Mapped[str] = mapped_column(Text)
     corrected_path: Mapped[str] = mapped_column(Text)
     effect_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    effect_settings: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     collection: Mapped["Collection"] = relationship(back_populates="cards")

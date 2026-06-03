@@ -8,15 +8,21 @@ import {
   prepareEffectData,
   renderFrame,
 } from '../lib/effectRenderer'
-import { encodeEffectVideo } from '../lib/effectEncoder'
 import { Loading } from '../components/Loading'
 import styles from './EffectPage.module.css'
+
+type ApiEffectSettings = {
+  hologram: boolean
+  neon: boolean
+  glow: boolean
+  glow_color: [number, number, number]
+}
 
 type CardInfo = {
   id: number
   collection_id: number
   corrected_url: string
-  effect_url: string | null
+  effect_settings: ApiEffectSettings | null
 }
 
 const GLOW_COLORS = [
@@ -27,6 +33,13 @@ const GLOW_COLORS = [
   { label: 'Gold', value: '#eab308', rgb: [0.92, 0.70, 0.03] as [number, number, number] },
   { label: 'White', value: '#ffffff', rgb: [1, 1, 1] as [number, number, number] },
 ]
+
+function findGlowColorIdx(rgb: [number, number, number] | undefined): number {
+  if (!rgb) return 0
+  return GLOW_COLORS.findIndex(
+    (c) => Math.abs(c.rgb[0] - rgb[0]) < 0.01 && Math.abs(c.rgb[1] - rgb[1]) < 0.01 && Math.abs(c.rgb[2] - rgb[2]) < 0.01,
+  ) ?? 0
+}
 
 export function EffectPage() {
   const { id } = useParams<{ id: string }>()
@@ -43,12 +56,19 @@ export function EffectPage() {
   const [glow, setGlow] = useState(true)
   const [glowColorIdx, setGlowColorIdx] = useState(0)
   const [saving, setSaving] = useState(false)
-  const [progress, setProgress] = useState(0)
 
-  // Load card data
+  // Load card data and restore settings
   useEffect(() => {
     if (!id) return
-    apiJson<CardInfo>(`/api/cards/${id}`, token).then(setCard)
+    apiJson<CardInfo>(`/api/cards/${id}`, token).then((data) => {
+      setCard(data)
+      if (data.effect_settings) {
+        setHologram(data.effect_settings.hologram)
+        setNeon(data.effect_settings.neon)
+        setGlow(data.effect_settings.glow)
+        setGlowColorIdx(findGlowColorIdx(data.effect_settings.glow_color))
+      }
+    })
   }, [id, token])
 
   // Prepare effect data when card image loads
@@ -87,28 +107,29 @@ export function EffectPage() {
     return () => cancelAnimationFrame(rafRef.current)
   }, [effectData])
 
-  // Save: encode + upload
+  // Save settings to server
   const handleSave = useCallback(async () => {
-    if (!effectData || !id || !token) return
+    if (!id || !token) return
     setSaving(true)
-    setProgress(0)
     try {
-      const blob = await encodeEffectVideo(effectData, settingsRef.current, setProgress)
-      const form = new FormData()
-      form.append('file', blob, 'effect.mp4')
-      await fetch(`/api/cards/${id}/effect`, {
+      await apiJson(`/api/cards/${id}/effect-settings`, token, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
+        body: JSON.stringify({
+          hologram,
+          neon,
+          glow,
+          glow_color: GLOW_COLORS[glowColorIdx].rgb,
+        }),
+        headers: { 'Content-Type': 'application/json' },
       })
       navigate(`/cards/${id}`)
     } catch (e) {
-      console.error('Effect encoding failed:', e)
-      alert('Effect generation failed')
+      console.error('Save failed:', e)
+      alert('Save failed')
     } finally {
       setSaving(false)
     }
-  }, [effectData, id, token, navigate])
+  }, [id, token, hologram, neon, glow, glowColorIdx, navigate])
 
   if (!card || !effectData) return <Loading />
 
@@ -162,18 +183,9 @@ export function EffectPage() {
         </div>
       )}
 
-      {saving ? (
-        <div className={styles.progressArea}>
-          <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
-          </div>
-          <p className={styles.progressText}>Generating... {progress}%</p>
-        </div>
-      ) : (
-        <button className={styles.saveBtn} onClick={handleSave}>
-          Save Effect
-        </button>
-      )}
+      <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+        {saving ? 'Saving...' : 'Save Effect'}
+      </button>
     </div>
   )
 }

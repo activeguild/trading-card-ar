@@ -15,24 +15,37 @@ router = APIRouter(prefix="/api/cards", tags=["cards"])
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
 
 
+class EffectSettingsOut(BaseModel):
+    hologram: bool = True
+    neon: bool = True
+    glow: bool = True
+    glow_color: list[float] = [0.66, 0.33, 0.97]
+
+
 class CardOut(BaseModel):
     id: int
     collection_id: int
     original_url: str
     corrected_url: str
     effect_url: str | None
+    effect_settings: EffectSettingsOut | None
     created_at: str
 
     model_config = {"from_attributes": True}
 
 
 def _card_to_out(card: Card) -> CardOut:
+    import json
+    settings = None
+    if card.effect_settings:
+        settings = EffectSettingsOut(**json.loads(card.effect_settings))
     return CardOut(
         id=card.id,
         collection_id=card.collection_id,
         original_url=f"/uploads/{card.original_path}",
         corrected_url=f"/uploads/{card.corrected_path}",
         effect_url=f"/uploads/{card.effect_path}" if card.effect_path else None,
+        effect_settings=settings,
         created_at=card.created_at.isoformat(),
     )
 
