@@ -8,9 +8,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 8px 16px;
   background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
   color: white;
+  position: relative;
 }
 
 .backBtn {
@@ -24,8 +25,11 @@
 }
 
 .headerLogo {
-  height: 44px;
+  height: 56px;
   width: auto;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .logoutBtn {
