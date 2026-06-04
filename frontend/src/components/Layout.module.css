@@ -23,12 +23,9 @@
   cursor: pointer;
 }
 
-.headerTitle {
-  font-size: 20px;
-  font-weight: 800;
-  margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  letter-spacing: 1px;
+.headerLogo {
+  height: 32px;
+  width: auto;
 }
 
 .logoutBtn {
@@ -80,11 +77,15 @@
   line-height: 1;
 }
 
-.tab:first-child::before {
+.tab:nth-child(1)::before {
+  content: '\1F3E0';
+}
+
+.tab:nth-child(2)::before {
   content: '\1F0CF';
 }
 
-.tab:last-child::before {
+.tab:nth-child(3)::before {
   content: '\2660';
 }
 

@@ -24,7 +24,7 @@ export function Layout() {
         ) : (
           <span />
         )}
-        <h1 className={styles.headerTitle}>トレカAR</h1>
+        <img src="/header-logo.webp" alt="トレカAR" className={styles.headerLogo} />
         <button className={styles.logoutBtn} onClick={logout}>
           Logout
         </button>
