@@ -57,7 +57,7 @@ export function EffectPage() {
 
   // Renderer config
   const config: RendererConfig = { transition, borderEffect, innerEffect }
-  useCardEffectRenderer(canvasRef, image, config)
+  const { reset } = useCardEffectRenderer(canvasRef, image, config)
 
   // Save
   const handleSave = useCallback(async () => {
@@ -83,7 +83,10 @@ export function EffectPage() {
 
   return (
     <div className={styles.page}>
-      <canvas ref={canvasRef} className={styles.preview} />
+      <div className={styles.previewArea}>
+        <canvas ref={canvasRef} className={styles.preview} />
+        <button className={styles.resetBtn} onClick={reset}>&#8635;</button>
+      </div>
 
       {/* Transition selector */}
       <div className={styles.selectorGroup}>

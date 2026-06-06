@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { vertexShader } from './shaders/common'
 import {
   EFFECT_SHADERS,
@@ -173,6 +173,7 @@ export function useCardEffectRenderer(
   config: RendererConfig,
 ) {
   const animRef = useRef(0)
+  const startTimeRef = useRef(0)
   const configRef = useRef(config)
   configRef.current = config
 
@@ -265,11 +266,11 @@ export function useCardEffectRenderer(
       }
     }
 
-    const startTime = performance.now()
+    startTimeRef.current = performance.now()
 
     const render = () => {
       const cfg = configRef.current
-      const elapsed = (performance.now() - startTime) / 1000
+      const elapsed = (performance.now() - startTimeRef.current) / 1000
 
       const hasTransition = cfg.transition !== null
       const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
@@ -329,4 +330,10 @@ export function useCardEffectRenderer(
       gl.deleteFramebuffer(fbo2.fb)
     }
   }, [canvasRef, image])
+
+  const reset = useCallback(() => {
+    startTimeRef.current = performance.now()
+  }, [])
+
+  return { reset }
 }
