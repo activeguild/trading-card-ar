@@ -83,6 +83,23 @@ function createEmptyTexture(gl: WebGLRenderingContext): WebGLTexture | null {
   return texture
 }
 
+// --- Framebuffer for offscreen rendering ---
+
+function createFramebuffer(gl: WebGLRenderingContext, w: number, h: number) {
+  const fb = gl.createFramebuffer()!
+  const tex = gl.createTexture()!
+  gl.bindTexture(gl.TEXTURE_2D, tex)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb)
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  return { fb, tex }
+}
+
 // --- Render a single shader pass ---
 
 function renderPass(
@@ -101,7 +118,9 @@ function renderPass(
   blendMode: number,
   effectColor: [number, number, number],
   effectOnly: number,
+  framebuffer: WebGLFramebuffer | null = null,
 ) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)
   gl.viewport(0, 0, w, h)
   gl.clearColor(0, 0, 0, 0)
   gl.clear(gl.COLOR_BUFFER_BIT)
@@ -132,6 +151,7 @@ function renderPass(
   gl.uniform1i(gl.getUniformLocation(program, 'u_background'), 2)
 
   gl.drawArrays(gl.TRIANGLES, 0, 6)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 }
 
 // --- Main hook ---
@@ -142,9 +162,10 @@ export interface RendererConfig {
   innerEffect: EffectName | null
 }
 
-const STILL_DURATION = 1.5 // seconds: show card before transition
-const TRANSITION_DURATION = 3 // seconds for transition
-const EFFECT_LOOP_DURATION = 4 // seconds per effect loop
+// Total cycle ~30s: still(2s) + effect loop(24s) + transition(4s)
+const STILL_DURATION = 2
+const EFFECT_DURATION = 24
+const TRANSITION_DURATION = 4
 
 export function useCardEffectRenderer(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -185,6 +206,9 @@ export function useCardEffectRenderer(
     const edgeMapTex = uploadTexture(gl, edgeMapCanvas)!
     const bgTex = createEmptyTexture(gl)!
 
+    // Framebuffer for rendering effects → used as transition source
+    const fbo = createFramebuffer(gl, w, h)
+
     // Build programs map (lazily compiled)
     const programCache = new Map<string, WebGLProgram>()
 
@@ -199,39 +223,32 @@ export function useCardEffectRenderer(
       return prog || null
     }
 
-    // Render the card image with no effects (static display)
-    function renderStatic() {
-      // Use any effect shader to passthrough with time=0
-      const shader = EFFECT_SHADERS.hologram
-      const prog = getProgram(shader)
-      if (!prog) return
-      renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, 0, 0, 0, 0, 1, 0, [1, 1, 1], 0)
-    }
+    // Render effect-applied card to a target (framebuffer or screen)
+    function renderEffectedCard(cfg: RendererConfig, time: number, target: WebGLFramebuffer | null) {
+      const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
 
-    // Render border effect (outer frame mode = 0, or overlay mode with borderMask)
-    function renderBorderEffect(effectName: EffectName, time: number) {
-      const shader = EFFECT_SHADERS[effectName]
-      const prog = getProgram(shader)
-      if (!prog) return
-      // mode=0 for outer frame effect
-      renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 0, 0, [1, 1, 1], 0)
-    }
+      if (!hasEffect) {
+        // No effects: render plain card
+        const shader = EFFECT_SHADERS.hologram
+        const prog = getProgram(shader)
+        if (!prog) return
+        renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, 0, 0, 0, 0, 1, 0, [1, 1, 1], 0, target)
+        return
+      }
 
-    // Render inner effect (overlay mode = 1)
-    function renderInnerEffect(effectName: EffectName, time: number) {
-      const shader = EFFECT_SHADERS[effectName]
-      const prog = getProgram(shader)
-      if (!prog) return
-      // mode=1 for overlay
-      renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 1, 1, [1, 1, 1], 0)
-    }
-
-    // Render transition
-    function renderTransition(transName: TransitionName, time: number) {
-      const shader = TRANSITION_SHADERS[transName]
-      const prog = getProgram(shader)
-      if (!prog) return
-      renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 1, 0, [1, 1, 1], 0)
+      if (cfg.borderEffect) {
+        // Border effect (outer frame mode=0)
+        const shader = EFFECT_SHADERS[cfg.borderEffect]
+        const prog = getProgram(shader)
+        if (!prog) return
+        renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 0, 0, [1, 1, 1], 0, target)
+      } else if (cfg.innerEffect) {
+        // Inner effect only (overlay mode=1)
+        const shader = EFFECT_SHADERS[cfg.innerEffect]
+        const prog = getProgram(shader)
+        if (!prog) return
+        renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 1, 1, [1, 1, 1], 0, target)
+      }
     }
 
     const startTime = performance.now()
@@ -243,58 +260,48 @@ export function useCardEffectRenderer(
       const hasTransition = cfg.transition !== null
       const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
 
-      // Calculate total cycle duration
+      // Timeline: still → effect loop → transition → repeat
       const transDuration = hasTransition ? TRANSITION_DURATION : 0
-      const effectDuration = hasEffect ? EFFECT_LOOP_DURATION : 0
-      const totalCycle = STILL_DURATION + transDuration + effectDuration
-      const phase = totalCycle > 0 ? elapsed % totalCycle : elapsed
+      const effectDur = hasEffect ? EFFECT_DURATION : 0
+      const totalCycle = STILL_DURATION + effectDur + transDuration
+
+      // If nothing is selected, just show the card
+      if (!hasTransition && !hasEffect) {
+        const shader = EFFECT_SHADERS.hologram
+        const prog = getProgram(shader)
+        if (prog) renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, 0, 0, 0, 0, 1, 0, [1, 1, 1], 0)
+        animRef.current = requestAnimationFrame(render)
+        return
+      }
+
+      const phase = totalCycle > 0 ? elapsed % totalCycle : 0
 
       if (phase < STILL_DURATION) {
-        // Still phase: show card
-        if (hasEffect) {
-          // Show effects during still phase too
-          gl!.viewport(0, 0, w, h)
-          gl!.clearColor(0, 0, 0, 0)
-          gl!.clear(gl!.COLOR_BUFFER_BIT)
-          if (cfg.borderEffect) {
-            renderBorderEffect(cfg.borderEffect, phase)
-          } else if (cfg.innerEffect) {
-            renderInnerEffect(cfg.innerEffect, phase)
-          } else {
-            renderStatic()
-          }
-          // If both effects, render inner on top via readback + composite
-          if (cfg.borderEffect && cfg.innerEffect) {
-            // For simplicity, just show border effect during still
-            // Inner overlay is blended in the shader
-          }
-        } else {
-          renderStatic()
-        }
-      } else if (hasTransition && phase < STILL_DURATION + transDuration) {
-        // Transition phase
+        // Still phase: show card with effects
+        renderEffectedCard(cfg, phase, null)
+      } else if (phase < STILL_DURATION + effectDur) {
+        // Effect loop phase
         const t = phase - STILL_DURATION
-        renderTransition(cfg.transition!, t)
+        renderEffectedCard(cfg, t, null)
       } else {
-        // Effect loop phase (or transition done, no effects → show static)
+        // Transition phase: render effect card to FBO, then transition uses it
+        const t = phase - STILL_DURATION - effectDur
+
         if (hasEffect) {
-          const t = phase - STILL_DURATION - transDuration
-          gl!.viewport(0, 0, w, h)
-          gl!.clearColor(0, 0, 0, 0)
-          gl!.clear(gl!.COLOR_BUFFER_BIT)
-          if (cfg.borderEffect && cfg.innerEffect) {
-            // Show border effect (includes image)
-            renderBorderEffect(cfg.borderEffect, t)
-          } else if (cfg.borderEffect) {
-            renderBorderEffect(cfg.borderEffect, t)
-          } else if (cfg.innerEffect) {
-            renderInnerEffect(cfg.innerEffect, t)
-          }
+          // Render effected card to framebuffer texture
+          renderEffectedCard(cfg, phase, fbo.fb)
         } else {
-          // No effects, transition done → clear canvas
-          gl!.viewport(0, 0, w, h)
-          gl!.clearColor(0, 0, 0, 0)
-          gl!.clear(gl!.COLOR_BUFFER_BIT)
+          // No effects, render plain card to framebuffer
+          const shader = EFFECT_SHADERS.hologram
+          const prog = getProgram(shader)
+          if (prog) renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, 0, 0, 0, 0, 1, 0, [1, 1, 1], 0, fbo.fb)
+        }
+
+        // Render transition to screen, using FBO texture as u_image
+        const transShader = TRANSITION_SHADERS[cfg.transition!]
+        const transProg = getProgram(transShader)
+        if (transProg) {
+          renderPass(gl!, transProg, w, h, fbo.tex, edgeMapTex, bgTex, t, 0.05, 1.0, 1.0, 1, 0, [1, 1, 1], 0)
         }
       }
 
@@ -309,6 +316,8 @@ export function useCardEffectRenderer(
       gl.deleteTexture(imageTex)
       gl.deleteTexture(edgeMapTex)
       gl.deleteTexture(bgTex)
+      gl.deleteTexture(fbo.tex)
+      gl.deleteFramebuffer(fbo.fb)
     }
   }, [canvasRef, image])
 }
