@@ -7,23 +7,16 @@ import {
 } from '@j1ngzoue/8thwall-react-three-fiber'
 import { CardPlane } from '../components/CardPlane'
 import { EffectShaderPlane } from '../components/EffectShaderPlane'
-import type { EffectSettings } from '../lib/effectRenderer'
+import type { EffectSettings as OldEffectSettings } from '../lib/effectRenderer'
 import * as THREE from 'three'
 import styles from './DeckARViewerPage.module.css'
-
-type ApiEffectSettings = {
-  hologram: boolean
-  neon: boolean
-  glow: boolean
-  glow_color: [number, number, number]
-}
 
 type ARDeckCard = {
   id: number
   marker_url: string
   target_url: string
   effect_url: string | null
-  effect_settings: ApiEffectSettings | null
+  effect_settings: Record<string, unknown> | null
 }
 
 type ARDeckData = {
@@ -32,12 +25,20 @@ type ARDeckData = {
   cards: ARDeckCard[]
 }
 
-function toEffectSettings(api: ApiEffectSettings): EffectSettings {
+function toOldEffectSettings(api: Record<string, unknown>): OldEffectSettings {
+  if ('hologram' in api) {
+    return {
+      hologram: api.hologram as boolean,
+      neon: api.neon as boolean,
+      glow: api.glow as boolean,
+      glowColor: (api.glow_color as [number, number, number]) ?? [1, 1, 1],
+    }
+  }
   return {
-    hologram: api.hologram,
-    neon: api.neon,
-    glow: api.glow,
-    glowColor: api.glow_color,
+    hologram: !!(api.borderEffect),
+    neon: false,
+    glow: false,
+    glowColor: [1, 1, 1],
   }
 }
 
@@ -77,7 +78,7 @@ export function DeckARViewerPage() {
       >
         <EighthwallCamera />
         {deck.cards.map((card) => {
-          const effectSettings = card.effect_settings ? toEffectSettings(card.effect_settings) : null
+          const effectSettings = card.effect_settings ? toOldEffectSettings(card.effect_settings) : null
           return (
             <ImageTracker key={card.id} targetImage={card.target_url}>
               <CardPlane src={card.marker_url} width={590} height={860} />

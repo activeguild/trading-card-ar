@@ -4,31 +4,15 @@ import { useAuth } from '../contexts/AuthContext'
 import { apiJson, apiFetch } from '../lib/api'
 import { QRModal } from '../components/QRModal'
 import { EffectPreviewCanvas } from '../components/EffectPreviewCanvas'
-import type { EffectSettings } from '../lib/effectRenderer'
+import type { EffectSettings } from '../lib/shaders/index'
 import styles from './CardDetailPage.module.css'
-
-type ApiEffectSettings = {
-  hologram: boolean
-  neon: boolean
-  glow: boolean
-  glow_color: [number, number, number]
-}
 
 type CardDetail = {
   id: number
   collection_id: number
   corrected_url: string
   effect_url: string | null
-  effect_settings: ApiEffectSettings | null
-}
-
-function toEffectSettings(api: ApiEffectSettings): EffectSettings {
-  return {
-    hologram: api.hologram,
-    neon: api.neon,
-    glow: api.glow,
-    glowColor: api.glow_color,
-  }
+  effect_settings: EffectSettings | null
 }
 
 export function CardDetailPage() {
@@ -57,7 +41,8 @@ export function CardDetailPage() {
   if (!card) return null
 
   const arUrl = `${window.location.origin}/ar/card/${card.id}`
-  const hasEffect = !!card.effect_settings
+  const hasEffect = card.effect_settings &&
+    (card.effect_settings.transition || card.effect_settings.borderEffect || card.effect_settings.innerEffect)
 
   return (
     <div className={styles.page}>
@@ -65,7 +50,7 @@ export function CardDetailPage() {
         {hasEffect ? (
           <EffectPreviewCanvas
             cardImageUrl={card.corrected_url}
-            settings={toEffectSettings(card.effect_settings!)}
+            settings={card.effect_settings!}
             className={styles.effectCanvas}
           />
         ) : (

@@ -5,80 +5,62 @@
   align-items: center;
   gap: 12px;
   min-height: calc(100dvh - 52px - 56px);
-  justify-content: center;
 }
 
 .preview {
   max-width: 60%;
-  max-height: 40vh;
+  max-height: 30vh;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.controls {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
+.selectorGroup {
+  width: 100%;
+  max-width: 360px;
 }
 
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-  user-select: none;
-}
-
-.toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: #8b5cf6;
-}
-
-.toggleLabel {
+.selectorLabel {
+  font-size: 13px;
+  font-weight: 800;
   color: #4c1d95;
+  margin-bottom: 6px;
 }
 
-.colorPicker {
-  text-align: center;
+.selectorScroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-.colorLabel {
+.selectorScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  background: white;
+  color: #64748b;
   font-size: 13px;
   font-weight: 700;
-  color: #64748b;
-  margin-bottom: 8px;
-}
-
-.colorOptions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.colorBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
   cursor: pointer;
-  transition: transform 0.15s;
-  outline: 3px solid transparent;
-  outline-offset: 2px;
+  white-space: nowrap;
+  transition: all 0.15s;
 }
 
-.colorBtn:active {
-  transform: scale(0.9);
+.chip:active {
+  transform: scale(0.95);
 }
 
-.colorBtnActive {
-  outline-color: #8b5cf6;
+.chipActive {
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #ede9fe, #fce7f3);
+  color: #7c3aed;
 }
 
 .saveBtn {
@@ -94,34 +76,10 @@
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
   transition: transform 0.15s;
+  margin-top: auto;
+  margin-bottom: 8px;
 }
 
 .saveBtn:active {
   transform: scale(0.96);
-}
-
-.progressArea {
-  width: 100%;
-  max-width: 320px;
-  text-align: center;
-}
-
-.progressBar {
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
-  transition: width 0.3s;
-}
-
-.progressText {
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 600;
-  margin-top: 8px;
 }

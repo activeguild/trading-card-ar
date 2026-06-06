@@ -7,31 +7,34 @@ import {
 } from '@j1ngzoue/8thwall-react-three-fiber'
 import { CardPlane } from '../components/CardPlane'
 import { EffectShaderPlane } from '../components/EffectShaderPlane'
-import type { EffectSettings } from '../lib/effectRenderer'
+import type { EffectSettings as OldEffectSettings } from '../lib/effectRenderer'
 import * as THREE from 'three'
 import styles from './ARViewerPage.module.css'
-
-type ApiEffectSettings = {
-  hologram: boolean
-  neon: boolean
-  glow: boolean
-  glow_color: [number, number, number]
-}
 
 type ARCardData = {
   id: number
   marker_url: string
   target_url: string
   effect_url: string | null
-  effect_settings: ApiEffectSettings | null
+  effect_settings: Record<string, unknown> | null
 }
 
-function toEffectSettings(api: ApiEffectSettings): EffectSettings {
+function toOldEffectSettings(api: Record<string, unknown>): OldEffectSettings {
+  // Support both old format (hologram/neon/glow) and new format (transition/borderEffect/innerEffect)
+  if ('hologram' in api) {
+    return {
+      hologram: api.hologram as boolean,
+      neon: api.neon as boolean,
+      glow: api.glow as boolean,
+      glowColor: (api.glow_color as [number, number, number]) ?? [1, 1, 1],
+    }
+  }
+  // New format: map borderEffect to hologram-like display for AR
   return {
-    hologram: api.hologram,
-    neon: api.neon,
-    glow: api.glow,
-    glowColor: api.glow_color,
+    hologram: !!(api.borderEffect),
+    neon: false,
+    glow: false,
+    glowColor: [1, 1, 1],
   }
 }
 
@@ -71,7 +74,7 @@ export function ARViewerPage() {
     return <div className={styles.loading}>Loading AR...</div>
   }
 
-  const effectSettings = card.effect_settings ? toEffectSettings(card.effect_settings) : null
+  const effectSettings = card.effect_settings ? toOldEffectSettings(card.effect_settings) : null
 
   return (
     <div className={styles.container}>
