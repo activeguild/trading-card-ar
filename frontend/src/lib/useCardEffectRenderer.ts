@@ -180,10 +180,11 @@ export interface RendererConfig {
   innerEffect: EffectName | null
 }
 
-// Total cycle ~30s: still(2s) + effect loop(24s) + transition(4s)
-const STILL_DURATION = 2
-const EFFECT_DURATION = 24
+// Cycle ~30s: effects loop continuously, transition plays on top periodically
+const CYCLE_DURATION = 30
 const TRANSITION_DURATION = 4
+// Transition starts at this point in the cycle
+const TRANSITION_START = CYCLE_DURATION - TRANSITION_DURATION
 
 export function useCardEffectRenderer(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -316,11 +317,6 @@ export function useCardEffectRenderer(
       const hasTransition = cfg.transition !== null
       const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
 
-      // Timeline: still → effect loop → transition → repeat
-      const transDuration = hasTransition ? TRANSITION_DURATION : 0
-      const effectDur = hasEffect ? EFFECT_DURATION : 0
-      const totalCycle = STILL_DURATION + effectDur + transDuration
-
       // If nothing is selected, just show the card
       if (!hasTransition && !hasEffect) {
         renderCard(null)
@@ -328,23 +324,15 @@ export function useCardEffectRenderer(
         return
       }
 
-      const phase = totalCycle > 0 ? elapsed % totalCycle : 0
+      const phase = elapsed % CYCLE_DURATION
+      const inTransition = hasTransition && phase >= TRANSITION_START
 
-      if (phase < STILL_DURATION) {
-        // Still phase: show card with effects
-        renderEffectedCard(cfg, phase, null)
-      } else if (phase < STILL_DURATION + effectDur) {
-        // Effect loop phase
-        const t = phase - STILL_DURATION
-        renderEffectedCard(cfg, t, null)
-      } else {
-        // Transition phase: render effect card to FBO, then transition uses it
-        const t = phase - STILL_DURATION - effectDur
+      if (inTransition) {
+        // Render effected card to fbo2
+        renderEffectedCard(cfg, elapsed, fbo2.fb)
 
-        // Render effected card (or plain) to fbo2
-        renderEffectedCard(cfg, phase, fbo2.fb)
-
-        // Render transition to screen, using fbo2 texture as u_image
+        // Transition on top, using effected card as source
+        const t = phase - TRANSITION_START
         const transShader = TRANSITION_SHADERS[cfg.transition!]
         const transProg = getProgram(transShader)
         if (transProg) {
@@ -354,6 +342,9 @@ export function useCardEffectRenderer(
             time: t, mode: 1, blendMode: 0, effectOnly: 0,
           })
         }
+      } else {
+        // Effects only (card + effects to screen)
+        renderEffectedCard(cfg, elapsed, null)
       }
 
       animRef.current = requestAnimationFrame(render)
