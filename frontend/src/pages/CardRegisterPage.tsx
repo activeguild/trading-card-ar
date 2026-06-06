@@ -10,7 +10,6 @@ export function CardRegisterPage() {
   const { token } = useAuth()
   const navigate = useNavigate()
   const cameraRef = useRef<HTMLInputElement>(null)
-  const [tapped, setTapped] = useState(false)
 
   const [preview, setPreview] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
@@ -61,15 +60,8 @@ export function CardRegisterPage() {
         </div>
       ) : (
         <div
-          className={`${styles.mascot} ${tapped ? styles.mascotTapped : ''}`}
-          onClick={() => {
-            if (tapped) return
-            setTapped(true)
-            setTimeout(() => {
-              cameraRef.current?.click()
-              setTapped(false)
-            }, 500)
-          }}
+          className={styles.mascot}
+          onClick={() => cameraRef.current?.click()}
         >
           <img
             src="/tap-camera.png"
