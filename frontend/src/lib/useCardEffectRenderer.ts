@@ -206,8 +206,9 @@ export function useCardEffectRenderer(
     const edgeMapTex = uploadTexture(gl, edgeMapCanvas)!
     const bgTex = createEmptyTexture(gl)!
 
-    // Framebuffer for rendering effects → used as transition source
-    const fbo = createFramebuffer(gl, w, h)
+    // Framebuffers: fbo1 for layering effects, fbo2 for transition source
+    const fbo1 = createFramebuffer(gl, w, h)
+    const fbo2 = createFramebuffer(gl, w, h)
 
     // Build programs map (lazily compiled)
     const programCache = new Map<string, WebGLProgram>()
@@ -224,6 +225,9 @@ export function useCardEffectRenderer(
     }
 
     // Render effect-applied card to a target (framebuffer or screen)
+    // When both border + inner are set, layers them:
+    //   1. Render border effect (with card) → fbo1
+    //   2. Render inner effect using fbo1 as source → target
     function renderEffectedCard(cfg: RendererConfig, time: number, target: WebGLFramebuffer | null) {
       const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
 
@@ -236,14 +240,24 @@ export function useCardEffectRenderer(
         return
       }
 
-      if (cfg.borderEffect) {
-        // Border effect (outer frame mode=0)
+      if (cfg.borderEffect && cfg.innerEffect) {
+        // Layer 1: border effect → fbo1
+        const borderShader = EFFECT_SHADERS[cfg.borderEffect]
+        const borderProg = getProgram(borderShader)
+        if (!borderProg) return
+        renderPass(gl!, borderProg, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 0, 0, [1, 1, 1], 0, fbo1.fb)
+
+        // Layer 2: inner effect, using fbo1 result as source → target
+        const innerShader = EFFECT_SHADERS[cfg.innerEffect]
+        const innerProg = getProgram(innerShader)
+        if (!innerProg) return
+        renderPass(gl!, innerProg, w, h, fbo1.tex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 1, 1, [1, 1, 1], 0, target)
+      } else if (cfg.borderEffect) {
         const shader = EFFECT_SHADERS[cfg.borderEffect]
         const prog = getProgram(shader)
         if (!prog) return
         renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 0, 0, [1, 1, 1], 0, target)
       } else if (cfg.innerEffect) {
-        // Inner effect only (overlay mode=1)
         const shader = EFFECT_SHADERS[cfg.innerEffect]
         const prog = getProgram(shader)
         if (!prog) return
@@ -287,21 +301,14 @@ export function useCardEffectRenderer(
         // Transition phase: render effect card to FBO, then transition uses it
         const t = phase - STILL_DURATION - effectDur
 
-        if (hasEffect) {
-          // Render effected card to framebuffer texture
-          renderEffectedCard(cfg, phase, fbo.fb)
-        } else {
-          // No effects, render plain card to framebuffer
-          const shader = EFFECT_SHADERS.hologram
-          const prog = getProgram(shader)
-          if (prog) renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, 0, 0, 0, 0, 1, 0, [1, 1, 1], 0, fbo.fb)
-        }
+        // Render effected card (or plain) to fbo2
+        renderEffectedCard(cfg, phase, fbo2.fb)
 
-        // Render transition to screen, using FBO texture as u_image
+        // Render transition to screen, using fbo2 texture as u_image
         const transShader = TRANSITION_SHADERS[cfg.transition!]
         const transProg = getProgram(transShader)
         if (transProg) {
-          renderPass(gl!, transProg, w, h, fbo.tex, edgeMapTex, bgTex, t, 0.05, 1.0, 1.0, 1, 0, [1, 1, 1], 0)
+          renderPass(gl!, transProg, w, h, fbo2.tex, edgeMapTex, bgTex, t, 0.05, 1.0, 1.0, 1, 0, [1, 1, 1], 0)
         }
       }
 
@@ -316,8 +323,10 @@ export function useCardEffectRenderer(
       gl.deleteTexture(imageTex)
       gl.deleteTexture(edgeMapTex)
       gl.deleteTexture(bgTex)
-      gl.deleteTexture(fbo.tex)
-      gl.deleteFramebuffer(fbo.fb)
+      gl.deleteTexture(fbo1.tex)
+      gl.deleteFramebuffer(fbo1.fb)
+      gl.deleteTexture(fbo2.tex)
+      gl.deleteFramebuffer(fbo2.fb)
     }
   }, [canvasRef, image])
 }
