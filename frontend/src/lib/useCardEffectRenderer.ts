@@ -102,30 +102,48 @@ function createFramebuffer(gl: WebGLRenderingContext, w: number, h: number) {
 
 // --- Render a single shader pass ---
 
-function renderPass(
-  gl: WebGLRenderingContext,
-  program: WebGLProgram,
-  w: number,
-  h: number,
-  imageTex: WebGLTexture,
-  edgeMapTex: WebGLTexture,
-  bgTex: WebGLTexture,
-  time: number,
-  borderWidth: number,
-  intensity: number,
-  speed: number,
-  mode: number,
-  blendMode: number,
-  effectColor: [number, number, number],
-  effectOnly: number,
-  framebuffer: WebGLFramebuffer | null = null,
-) {
+interface PassOptions {
+  gl: WebGLRenderingContext
+  program: WebGLProgram
+  w: number
+  h: number
+  imageTex: WebGLTexture
+  edgeMapTex: WebGLTexture
+  bgTex: WebGLTexture
+  time: number
+  borderWidth: number
+  intensity: number
+  speed: number
+  mode: number
+  blendMode: number
+  effectColor: [number, number, number]
+  effectOnly: number
+  framebuffer?: WebGLFramebuffer | null
+  clear?: boolean
+  blendSrc?: number
+  blendDst?: number
+}
+
+function renderPass(opts: PassOptions) {
+  const {
+    gl, program, w, h,
+    imageTex, edgeMapTex, bgTex,
+    time, borderWidth, intensity, speed,
+    mode, blendMode, effectColor, effectOnly,
+    framebuffer = null,
+    clear = true,
+    blendSrc = gl.SRC_ALPHA,
+    blendDst = gl.ONE_MINUS_SRC_ALPHA,
+  } = opts
+
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)
   gl.viewport(0, 0, w, h)
-  gl.clearColor(0, 0, 0, 0)
-  gl.clear(gl.COLOR_BUFFER_BIT)
+  if (clear) {
+    gl.clearColor(0, 0, 0, 0)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+  }
   gl.enable(gl.BLEND)
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+  gl.blendFunc(blendSrc, blendDst)
   gl.useProgram(program)
 
   gl.uniform1f(gl.getUniformLocation(program, 'u_time'), time)
@@ -225,44 +243,67 @@ export function useCardEffectRenderer(
       return prog || null
     }
 
-    // Render effect-applied card to a target (framebuffer or screen)
-    // When both border + inner are set, layers them:
-    //   1. Render border effect (with card) → fbo1
-    //   2. Render inner effect using fbo1 as source → target
-    function renderEffectedCard(cfg: RendererConfig, time: number, target: WebGLFramebuffer | null) {
-      const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
+    // Common pass options base
+    const baseOpts = {
+      gl: gl!, w, h,
+      edgeMapTex, bgTex,
+      borderWidth: 0.05, intensity: 1.0, speed: 1.0,
+      effectColor: [1, 1, 1] as [number, number, number],
+    }
 
-      if (!hasEffect) {
-        // No effects: render plain card
-        const shader = EFFECT_SHADERS.hologram
-        const prog = getProgram(shader)
-        if (!prog) return
-        renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, 0, 0, 0, 0, 1, 0, [1, 1, 1], 0, target)
+    // Render plain card image to target
+    function renderCard(target: WebGLFramebuffer | null) {
+      const shader = EFFECT_SHADERS.hologram
+      const prog = getProgram(shader)
+      if (!prog) return
+      renderPass({
+        ...baseOpts, program: prog, imageTex,
+        time: 0, mode: 1, blendMode: 0, effectOnly: 0,
+        borderWidth: 0, intensity: 0, speed: 0,
+        framebuffer: target,
+      })
+    }
+
+    // Render effect-applied card to target
+    // Structure: card → border effect overlay → inner effect overlay
+    function renderEffectedCard(cfg: RendererConfig, time: number, target: WebGLFramebuffer | null) {
+      const hasBorder = cfg.borderEffect !== null
+      const hasInner = cfg.innerEffect !== null
+
+      if (!hasBorder && !hasInner) {
+        renderCard(target)
         return
       }
 
-      if (cfg.borderEffect && cfg.innerEffect) {
-        // Layer 1: border effect → fbo1
-        const borderShader = EFFECT_SHADERS[cfg.borderEffect]
-        const borderProg = getProgram(borderShader)
-        if (!borderProg) return
-        renderPass(gl!, borderProg, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 0, 0, [1, 1, 1], 0, fbo1.fb)
+      // Step 1: Draw card image as base layer
+      renderCard(target)
 
-        // Layer 2: inner effect, using fbo1 result as source → target
-        const innerShader = EFFECT_SHADERS[cfg.innerEffect]
-        const innerProg = getProgram(innerShader)
-        if (!innerProg) return
-        renderPass(gl!, innerProg, w, h, fbo1.tex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 1, 1, [1, 1, 1], 0, target)
-      } else if (cfg.borderEffect) {
-        const shader = EFFECT_SHADERS[cfg.borderEffect]
+      // Step 2: Overlay border effect (effectOnly=1, additive blend, no clear)
+      if (hasBorder) {
+        const shader = EFFECT_SHADERS[cfg.borderEffect!]
         const prog = getProgram(shader)
-        if (!prog) return
-        renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 0, 0, [1, 1, 1], 0, target)
-      } else if (cfg.innerEffect) {
-        const shader = EFFECT_SHADERS[cfg.innerEffect]
+        if (prog) {
+          renderPass({
+            ...baseOpts, program: prog, imageTex,
+            time, mode: 0, blendMode: 0, effectOnly: 1,
+            framebuffer: target, clear: false,
+            blendSrc: gl!.SRC_ALPHA, blendDst: gl!.ONE,
+          })
+        }
+      }
+
+      // Step 3: Overlay inner effect (effectOnly=1, additive blend, no clear)
+      if (hasInner) {
+        const shader = EFFECT_SHADERS[cfg.innerEffect!]
         const prog = getProgram(shader)
-        if (!prog) return
-        renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, time, 0.05, 1.0, 1.0, 1, 1, [1, 1, 1], 0, target)
+        if (prog) {
+          renderPass({
+            ...baseOpts, program: prog, imageTex,
+            time, mode: 1, blendMode: 0, effectOnly: 1,
+            framebuffer: target, clear: false,
+            blendSrc: gl!.SRC_ALPHA, blendDst: gl!.ONE,
+          })
+        }
       }
     }
 
@@ -282,9 +323,7 @@ export function useCardEffectRenderer(
 
       // If nothing is selected, just show the card
       if (!hasTransition && !hasEffect) {
-        const shader = EFFECT_SHADERS.hologram
-        const prog = getProgram(shader)
-        if (prog) renderPass(gl!, prog, w, h, imageTex, edgeMapTex, bgTex, 0, 0, 0, 0, 1, 0, [1, 1, 1], 0)
+        renderCard(null)
         animRef.current = requestAnimationFrame(render)
         return
       }
@@ -309,7 +348,11 @@ export function useCardEffectRenderer(
         const transShader = TRANSITION_SHADERS[cfg.transition!]
         const transProg = getProgram(transShader)
         if (transProg) {
-          renderPass(gl!, transProg, w, h, fbo2.tex, edgeMapTex, bgTex, t, 0.05, 1.0, 1.0, 1, 0, [1, 1, 1], 0)
+          renderPass({
+            ...baseOpts, program: transProg,
+            imageTex: fbo2.tex,
+            time: t, mode: 1, blendMode: 0, effectOnly: 0,
+          })
         }
       }
 
