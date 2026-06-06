@@ -10,7 +10,7 @@ export function CardRegisterPage() {
   const { token } = useAuth()
   const navigate = useNavigate()
   const cameraRef = useRef<HTMLInputElement>(null)
-  const galleryRef = useRef<HTMLInputElement>(null)
+  const [tapped, setTapped] = useState(false)
 
   const [preview, setPreview] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
@@ -60,19 +60,23 @@ export function CardRegisterPage() {
           <img src={preview} alt="Preview" className={styles.preview} />
         </div>
       ) : (
-        <div className={styles.buttonGroup}>
-          <button
-            className={styles.cameraBtn}
-            onClick={() => cameraRef.current?.click()}
-          >
-            Take Photo
-          </button>
-          <button
-            className={styles.galleryBtn}
-            onClick={() => galleryRef.current?.click()}
-          >
-            Choose from Gallery
-          </button>
+        <div
+          className={`${styles.mascot} ${tapped ? styles.mascotTapped : ''}`}
+          onClick={() => {
+            if (tapped) return
+            setTapped(true)
+            setTimeout(() => {
+              cameraRef.current?.click()
+              setTapped(false)
+            }, 500)
+          }}
+        >
+          <img
+            src="/tap-camera.png"
+            alt="Tap to take photo"
+            className={styles.mascotImg}
+            draggable={false}
+          />
         </div>
       )}
       <input
@@ -80,13 +84,6 @@ export function CardRegisterPage() {
         type="file"
         accept="image/*"
         capture="environment"
-        className={styles.hidden}
-        onChange={onFileChange}
-      />
-      <input
-        ref={galleryRef}
-        type="file"
-        accept="image/*"
         className={styles.hidden}
         onChange={onFileChange}
       />
