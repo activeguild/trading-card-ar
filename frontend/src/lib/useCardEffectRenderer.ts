@@ -180,11 +180,8 @@ export interface RendererConfig {
   innerEffect: EffectName | null
 }
 
-// Cycle ~30s: effects loop continuously, transition plays on top periodically
 const CYCLE_DURATION = 30
 const TRANSITION_DURATION = 4
-// Transition starts at this point in the cycle
-const TRANSITION_START = CYCLE_DURATION - TRANSITION_DURATION
 
 export function useCardEffectRenderer(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -325,21 +322,20 @@ export function useCardEffectRenderer(
       }
 
       const phase = elapsed % CYCLE_DURATION
-      const inTransition = hasTransition && phase >= TRANSITION_START
+      const inTransition = hasTransition && phase < TRANSITION_DURATION
 
       if (inTransition) {
         // Render effected card to fbo2
         renderEffectedCard(cfg, elapsed, fbo2.fb)
 
         // Transition on top, using effected card as source
-        const t = phase - TRANSITION_START
         const transShader = TRANSITION_SHADERS[cfg.transition!]
         const transProg = getProgram(transShader)
         if (transProg) {
           renderPass({
             ...baseOpts, program: transProg,
             imageTex: fbo2.tex,
-            time: t, mode: 1, blendMode: 0, effectOnly: 0,
+            time: phase, mode: 1, blendMode: 0, effectOnly: 0,
           })
         }
       } else {
