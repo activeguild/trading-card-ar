@@ -262,8 +262,10 @@ export function useCardEffectRenderer(
       })
     }
 
-    // Render effect-applied card to target
-    // Structure: card → border effect overlay → inner effect overlay
+    // Render card with effects applied
+    // Border effect: mode=0 (outer frame, card included in shader)
+    // Inner effect: mode=1 (overlay, card included in shader)
+    // Both: border→fbo1, then inner uses fbo1 as source
     function renderEffectedCard(cfg: RendererConfig, time: number, target: WebGLFramebuffer | null) {
       const hasBorder = cfg.borderEffect !== null
       const hasInner = cfg.innerEffect !== null
@@ -273,33 +275,46 @@ export function useCardEffectRenderer(
         return
       }
 
-      // Step 1: Draw card image as base layer
-      renderCard(target)
-
-      // Step 2: Overlay border effect (effectOnly=1, additive blend, no clear)
-      if (hasBorder) {
+      if (hasBorder && hasInner) {
+        // Layer 1: border effect (card included) → fbo1
+        const borderShader = EFFECT_SHADERS[cfg.borderEffect!]
+        const borderProg = getProgram(borderShader)
+        if (borderProg) {
+          renderPass({
+            ...baseOpts, program: borderProg, imageTex,
+            time, mode: 0, blendMode: 0, effectOnly: 0,
+            framebuffer: fbo1.fb,
+          })
+        }
+        // Layer 2: inner effect using fbo1 result as source → target
+        const innerShader = EFFECT_SHADERS[cfg.innerEffect!]
+        const innerProg = getProgram(innerShader)
+        if (innerProg) {
+          renderPass({
+            ...baseOpts, program: innerProg,
+            imageTex: fbo1.tex,
+            time, mode: 1, blendMode: 1, effectOnly: 0,
+            framebuffer: target,
+          })
+        }
+      } else if (hasBorder) {
         const shader = EFFECT_SHADERS[cfg.borderEffect!]
         const prog = getProgram(shader)
         if (prog) {
           renderPass({
             ...baseOpts, program: prog, imageTex,
-            time, mode: 0, blendMode: 0, effectOnly: 1,
-            framebuffer: target, clear: false,
-            blendSrc: gl!.SRC_ALPHA, blendDst: gl!.ONE,
+            time, mode: 0, blendMode: 0, effectOnly: 0,
+            framebuffer: target,
           })
         }
-      }
-
-      // Step 3: Overlay inner effect (effectOnly=1, additive blend, no clear)
-      if (hasInner) {
+      } else {
         const shader = EFFECT_SHADERS[cfg.innerEffect!]
         const prog = getProgram(shader)
         if (prog) {
           renderPass({
             ...baseOpts, program: prog, imageTex,
-            time, mode: 1, blendMode: 0, effectOnly: 1,
-            framebuffer: target, clear: false,
-            blendSrc: gl!.SRC_ALPHA, blendDst: gl!.ONE,
+            time, mode: 1, blendMode: 1, effectOnly: 0,
+            framebuffer: target,
           })
         }
       }
