@@ -339,23 +339,21 @@ export function useCardEffectRenderer(
       const phase = elapsed % CYCLE_DURATION
       const inTransition = hasTransition && phase < TRANSITION_DURATION
 
-      if (inTransition) {
-        // Render effected card to fbo2
-        renderEffectedCard(cfg, elapsed, fbo2.fb)
+      // Back layer: card + effects (always drawn, cleared)
+      renderEffectedCard(cfg, elapsed, null)
 
-        // Transition on top, using effected card as source
+      // Front layer: transition on top (no clear, alpha blend)
+      if (inTransition) {
         const transShader = TRANSITION_SHADERS[cfg.transition!]
         const transProg = getProgram(transShader)
         if (transProg) {
           renderPass({
             ...baseOpts, program: transProg,
-            imageTex: fbo2.tex,
+            imageTex,
             time: phase, mode: 1, blendMode: 0, effectOnly: 0,
+            clear: false,
           })
         }
-      } else {
-        // Effects only (card + effects to screen)
-        renderEffectedCard(cfg, elapsed, null)
       }
 
       animRef.current = requestAnimationFrame(render)
