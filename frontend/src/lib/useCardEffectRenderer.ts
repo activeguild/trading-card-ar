@@ -225,6 +225,15 @@ export function useCardEffectRenderer(
     const edgeMapTex = uploadTexture(gl, edgeMapCanvas)!
     const bgTex = createEmptyTexture(gl)!
 
+    // Pack image for transition layer
+    let packTex: WebGLTexture | null = null
+    const packImg = new Image()
+    packImg.crossOrigin = 'anonymous'
+    packImg.onload = () => {
+      packTex = uploadTexture(gl!, packImg)
+    }
+    packImg.src = '/pack.png'
+
     // Framebuffers: fbo1 for layering effects, fbo2 for transition source
     const fbo1 = createFramebuffer(gl, w, h)
     const fbo2 = createFramebuffer(gl, w, h)
@@ -344,14 +353,14 @@ export function useCardEffectRenderer(
       // Back layer: card + effects (always drawn, cleared)
       renderEffectedCard(cfg, elapsed, null)
 
-      // Front layer: transition on top (no clear, alpha blend)
-      if (inTransition) {
+      // Front layer: transition using pack image on top (no clear, alpha blend)
+      if (inTransition && packTex) {
         const transShader = TRANSITION_SHADERS[cfg.transition!]
         const transProg = getProgram(transShader)
         if (transProg) {
           renderPass({
             ...baseOpts, program: transProg,
-            imageTex,
+            imageTex: packTex,
             time: phase, mode: 1, blendMode: 0, effectOnly: 0,
             clear: false,
           })
@@ -369,6 +378,7 @@ export function useCardEffectRenderer(
       gl.deleteTexture(imageTex)
       gl.deleteTexture(edgeMapTex)
       gl.deleteTexture(bgTex)
+      if (packTex) gl.deleteTexture(packTex)
       gl.deleteTexture(fbo1.tex)
       gl.deleteFramebuffer(fbo1.fb)
       gl.deleteTexture(fbo2.tex)
