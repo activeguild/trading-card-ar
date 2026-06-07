@@ -8,8 +8,9 @@
 }
 
 .previewArea {
-  position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .preview {
@@ -20,21 +21,19 @@
 }
 
 .resetBtn {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  font-size: 20px;
+  background: rgba(0, 0, 0, 0.15);
+  color: #64748b;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .selectorGroup {
