@@ -3,8 +3,10 @@ import { vertexShader } from './shaders/common'
 import {
   EFFECT_SHADERS,
   TRANSITION_SHADERS,
+  PACK_IMAGE_MAP,
   type EffectName,
   type TransitionName,
+  type PackType,
 } from './shaders/index'
 import { generateEdgeMap } from './edgeMap'
 
@@ -178,6 +180,7 @@ export interface RendererConfig {
   transition: TransitionName | null
   borderEffect: EffectName | null
   innerEffect: EffectName | null
+  packType: PackType
 }
 
 const CYCLE_DURATION = 30
@@ -225,21 +228,27 @@ export function useCardEffectRenderer(
 
     // Pack image for transition layer (scaled to fill canvas with 20% overflow)
     let packTex: WebGLTexture | null = null
-    const packImg = new Image()
-    packImg.crossOrigin = 'anonymous'
-    packImg.onload = () => {
-      const packCanvas = document.createElement('canvas')
-      packCanvas.width = w
-      packCanvas.height = h
-      const pCtx = packCanvas.getContext('2d')!
-      // Scale pack to cover canvas with 20% extra size
-      const scale = Math.max(w / packImg.naturalWidth, h / packImg.naturalHeight) * 1.2
-      const pw = packImg.naturalWidth * scale
-      const ph = packImg.naturalHeight * scale
-      pCtx.drawImage(packImg, (w - pw) / 2, (h - ph) / 2, pw, ph)
-      packTex = uploadTexture(gl!, packCanvas)
+    let currentPackType: PackType | null = null
+
+    function loadPackImage(packType: PackType) {
+      if (packType === currentPackType) return
+      currentPackType = packType
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        if (packTex) gl!.deleteTexture(packTex)
+        const packCanvas = document.createElement('canvas')
+        packCanvas.width = w
+        packCanvas.height = h
+        const pCtx = packCanvas.getContext('2d')!
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * 1.2
+        const pw = img.naturalWidth * scale
+        const ph = img.naturalHeight * scale
+        pCtx.drawImage(img, (w - pw) / 2, (h - ph) / 2, pw, ph)
+        packTex = uploadTexture(gl!, packCanvas)
+      }
+      img.src = PACK_IMAGE_MAP[packType]
     }
-    packImg.src = '/pack.png'
 
     // Framebuffers: fbo1 for layering effects, fbo2 for transition source
     const fbo1 = createFramebuffer(gl, w, h)
@@ -346,6 +355,9 @@ export function useCardEffectRenderer(
 
       const hasTransition = cfg.transition !== null
       const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
+
+      // Load pack image when needed
+      if (hasTransition) loadPackImage(cfg.packType)
 
       // If nothing is selected, just show the card
       if (!hasTransition && !hasEffect) {

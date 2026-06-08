@@ -152,8 +152,23 @@ export const TRANSITION_LIST: { key: TransitionName; label: string }[] = [
   { key: 'magicDust', label: '魔法の粒子' },
 ]
 
+export type PackType = 'normal' | 'silver' | 'gold'
+
+export const PACK_LIST: { key: PackType; label: string }[] = [
+  { key: 'normal', label: 'ノーマル' },
+  { key: 'silver', label: 'シルバー' },
+  { key: 'gold', label: 'ゴールド' },
+]
+
+export const PACK_IMAGE_MAP: Record<PackType, string> = {
+  normal: '/pack-normal.png',
+  silver: '/pack-silver.png',
+  gold: '/pack-gold.png',
+}
+
 export interface EffectSettings {
   transition: TransitionName | null
   borderEffect: EffectName | null
   innerEffect: EffectName | null
+  packType: PackType
 }

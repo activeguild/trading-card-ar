@@ -6,9 +6,11 @@ import { useCardEffectRenderer, type RendererConfig } from '../lib/useCardEffect
 import {
   EFFECT_LIST,
   TRANSITION_LIST,
+  PACK_LIST,
   type EffectName,
   type EffectSettings,
   type TransitionName,
+  type PackType,
 } from '../lib/shaders/index'
 import { Loading } from '../components/Loading'
 import styles from './EffectPage.module.css'
@@ -31,6 +33,7 @@ export function EffectPage() {
   const [transition, setTransition] = useState<TransitionName | null>(null)
   const [borderEffect, setBorderEffect] = useState<EffectName | null>(null)
   const [innerEffect, setInnerEffect] = useState<EffectName | null>(null)
+  const [packType, setPackType] = useState<PackType>('normal')
   const [saving, setSaving] = useState(false)
 
   // Load card data
@@ -42,6 +45,7 @@ export function EffectPage() {
         setTransition(data.effect_settings.transition ?? null)
         setBorderEffect(data.effect_settings.borderEffect ?? null)
         setInnerEffect(data.effect_settings.innerEffect ?? null)
+        setPackType(data.effect_settings.packType ?? 'normal')
       }
     })
   }, [id, token])
@@ -56,7 +60,7 @@ export function EffectPage() {
   }, [card])
 
   // Renderer config
-  const config: RendererConfig = { transition, borderEffect, innerEffect }
+  const config: RendererConfig = { transition, borderEffect, innerEffect, packType }
   const { reset } = useCardEffectRenderer(canvasRef, image, config)
 
   // Save
@@ -64,7 +68,7 @@ export function EffectPage() {
     if (!id || !token) return
     setSaving(true)
     try {
-      const settings: EffectSettings = { transition, borderEffect, innerEffect }
+      const settings: EffectSettings = { transition, borderEffect, innerEffect, packType }
       await apiJson(`/api/cards/${id}/effect-settings`, token, {
         method: 'POST',
         body: JSON.stringify(settings),
@@ -77,9 +81,11 @@ export function EffectPage() {
     } finally {
       setSaving(false)
     }
-  }, [id, token, transition, borderEffect, innerEffect, navigate])
+  }, [id, token, transition, borderEffect, innerEffect, packType, navigate])
 
   if (!card || !image) return <Loading />
+
+  const packDisabled = transition === null
 
   return (
     <div className={styles.page}>
@@ -105,6 +111,23 @@ export function EffectPage() {
               onClick={() => setTransition(t.key)}
             >
               {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Pack selector */}
+      <div className={`${styles.selectorGroup} ${packDisabled ? styles.selectorDisabled : ''}`}>
+        <p className={styles.selectorLabel}>パック</p>
+        <div className={styles.selectorScroll}>
+          {PACK_LIST.map((p) => (
+            <button
+              key={p.key}
+              className={`${styles.chip} ${packType === p.key ? styles.chipActive : ''}`}
+              onClick={() => !packDisabled && setPackType(p.key)}
+              disabled={packDisabled}
+            >
+              {p.label}
             </button>
           ))}
         </div>

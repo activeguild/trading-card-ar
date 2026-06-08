@@ -61,6 +61,11 @@
   display: none;
 }
 
+.selectorDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .chip {
   flex-shrink: 0;
   padding: 8px 16px;
