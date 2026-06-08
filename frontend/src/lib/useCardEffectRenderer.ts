@@ -202,31 +202,46 @@ export function useCardEffectRenderer(
 
     cancelAnimationFrame(animRef.current)
 
+    // Card image size (capped)
     const MAX_SIZE = 700
-    let w = image.naturalWidth
-    let h = image.naturalHeight
-    if (w > MAX_SIZE || h > MAX_SIZE) {
-      const scale = Math.min(MAX_SIZE / w, MAX_SIZE / h)
-      w = Math.round(w * scale)
-      h = Math.round(h * scale)
+    let cw = image.naturalWidth
+    let ch = image.naturalHeight
+    if (cw > MAX_SIZE || ch > MAX_SIZE) {
+      const s = Math.min(MAX_SIZE / cw, MAX_SIZE / ch)
+      cw = Math.round(cw * s)
+      ch = Math.round(ch * s)
     }
+
+    // Canvas size: larger than card to fit pack image around it
+    // Pack aspect is roughly 2:3, card should occupy ~60% of canvas height
+    const CARD_RATIO = 0.6
+    const w = Math.round(cw * 1.3)
+    const h = Math.round(ch / CARD_RATIO)
     canvas.width = w
     canvas.height = h
 
     const gl = canvas.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true })
     if (!gl) return
 
-    // Textures
-    const imageTex = uploadTexture(gl, image)!
-    const edgeMapData = generateEdgeMap(image, w, h)
+    // Card image: centered in larger canvas with transparent padding
+    const cardCanvas = document.createElement('canvas')
+    cardCanvas.width = w
+    cardCanvas.height = h
+    const cCtx = cardCanvas.getContext('2d')!
+    cCtx.drawImage(image, (w - cw) / 2, (h - ch) / 2, cw, ch)
+    const imageTex = uploadTexture(gl, cardCanvas)!
+
+    // Edge map: also padded to match canvas size
+    const edgeMapData = generateEdgeMap(image, cw, ch)
     const edgeMapCanvas = document.createElement('canvas')
     edgeMapCanvas.width = w
     edgeMapCanvas.height = h
-    edgeMapCanvas.getContext('2d')!.putImageData(edgeMapData, 0, 0)
+    const eCtx = edgeMapCanvas.getContext('2d')!
+    eCtx.putImageData(edgeMapData, (w - cw) / 2, (h - ch) / 2)
     const edgeMapTex = uploadTexture(gl, edgeMapCanvas)!
     const bgTex = createEmptyTexture(gl)!
 
-    // Pack image for transition layer (scaled to fill canvas with 20% overflow)
+    // Pack image for transition layer (fit to canvas)
     let packTex: WebGLTexture | null = null
     let currentPackType: PackType | null = null
 
@@ -241,7 +256,8 @@ export function useCardEffectRenderer(
         packCanvas.width = w
         packCanvas.height = h
         const pCtx = packCanvas.getContext('2d')!
-        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * 1.5
+        // Fit pack image to cover canvas
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight)
         const pw = img.naturalWidth * scale
         const ph = img.naturalHeight * scale
         pCtx.drawImage(img, (w - pw) / 2, (h - ph) / 2, pw, ph)
