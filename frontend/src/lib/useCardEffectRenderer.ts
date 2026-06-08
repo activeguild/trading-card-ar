@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef } from 'react'
 import { vertexShader } from './shaders/common'
 import {
   EFFECT_SHADERS,
-  TRANSITION_SHADERS,
-  PACK_IMAGE_MAP,
   type EffectName,
   type TransitionName,
   type PackType,
@@ -190,11 +188,14 @@ export function useCardEffectRenderer(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   image: HTMLImageElement | null,
   config: RendererConfig,
+  onTransitionProgress?: (progress: number) => void, // 0=start, 1=done, -1=not in transition
 ) {
   const animRef = useRef(0)
   const startTimeRef = useRef(0)
   const configRef = useRef(config)
   configRef.current = config
+  const onTransitionRef = useRef(onTransitionProgress)
+  onTransitionRef.current = onTransitionProgress
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -227,35 +228,7 @@ export function useCardEffectRenderer(
     const edgeMapTex = uploadTexture(gl, edgeMapCanvas)!
     const bgTex = createEmptyTexture(gl)!
 
-    // Pack image for transition layer (larger than canvas, centered)
-    let packTex: WebGLTexture | null = null
-    let currentPackType: PackType | null = null
-
-    function loadPackImage(packType: PackType) {
-      if (packType === currentPackType) return
-      currentPackType = packType
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        if (packTex) gl!.deleteTexture(packTex)
-        // Draw pack image scaled up so it overflows the canvas (card-sized)
-        const packCanvas = document.createElement('canvas')
-        packCanvas.width = w
-        packCanvas.height = h
-        const pCtx = packCanvas.getContext('2d')!
-        // Pack covers canvas with extra overflow so card fits "inside" the pack
-        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * 1.3
-        const pw = img.naturalWidth * scale
-        const ph = img.naturalHeight * scale
-        pCtx.drawImage(img, (w - pw) / 2, (h - ph) / 2, pw, ph)
-        packTex = uploadTexture(gl!, packCanvas)
-      }
-      img.src = PACK_IMAGE_MAP[packType]
-    }
-
-    // Framebuffers: fbo1 for layering effects, fbo2 for transition source
     const fbo1 = createFramebuffer(gl, w, h)
-    const fbo2 = createFramebuffer(gl, w, h)
 
     // Build programs map (lazily compiled)
     const programCache = new Map<string, WebGLProgram>()
@@ -359,12 +332,10 @@ export function useCardEffectRenderer(
       const hasTransition = cfg.transition !== null
       const hasEffect = cfg.borderEffect !== null || cfg.innerEffect !== null
 
-      // Load pack image when needed
-      if (hasTransition) loadPackImage(cfg.packType)
-
       // If nothing is selected, just show the card
       if (!hasTransition && !hasEffect) {
         renderCard(null)
+        onTransitionRef.current?.(-1)
         animRef.current = requestAnimationFrame(render)
         return
       }
@@ -372,21 +343,14 @@ export function useCardEffectRenderer(
       const phase = elapsed % CYCLE_DURATION
       const inTransition = hasTransition && phase < TRANSITION_DURATION
 
-      // Back layer: card + effects (always drawn, cleared)
+      // Render card + effects
       renderEffectedCard(cfg, elapsed, null)
 
-      // Front layer: transition using pack image on top (no clear, alpha blend)
-      if (inTransition && packTex) {
-        const transShader = TRANSITION_SHADERS[cfg.transition!]
-        const transProg = getProgram(transShader)
-        if (transProg) {
-          renderPass({
-            ...baseOpts, program: transProg,
-            imageTex: packTex,
-            time: phase, mode: 1, blendMode: 0, effectOnly: 0,
-            clear: false,
-          })
-        }
+      // Report transition progress for pack overlay
+      if (inTransition) {
+        onTransitionRef.current?.(phase / TRANSITION_DURATION)
+      } else {
+        onTransitionRef.current?.(-1)
       }
 
       animRef.current = requestAnimationFrame(render)
@@ -400,11 +364,8 @@ export function useCardEffectRenderer(
       gl.deleteTexture(imageTex)
       gl.deleteTexture(edgeMapTex)
       gl.deleteTexture(bgTex)
-      if (packTex) gl.deleteTexture(packTex)
       gl.deleteTexture(fbo1.tex)
       gl.deleteFramebuffer(fbo1.fb)
-      gl.deleteTexture(fbo2.tex)
-      gl.deleteFramebuffer(fbo2.fb)
     }
   }, [canvasRef, image])
 

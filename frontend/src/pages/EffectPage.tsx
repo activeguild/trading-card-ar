@@ -7,6 +7,7 @@ import {
   EFFECT_LIST,
   TRANSITION_LIST,
   PACK_LIST,
+  PACK_IMAGE_MAP,
   type EffectName,
   type EffectSettings,
   type TransitionName,
@@ -59,9 +60,14 @@ export function EffectPage() {
     img.src = card.corrected_url
   }, [card])
 
+  // Pack overlay state: -1=hidden, 0~1=transition progress
+  const [packProgress, setPackProgress] = useState(-1)
+
   // Renderer config
   const config: RendererConfig = { transition, borderEffect, innerEffect, packType }
-  const { reset } = useCardEffectRenderer(canvasRef, image, config)
+  const { reset } = useCardEffectRenderer(canvasRef, image, config, setPackProgress)
+
+  const packVisible = transition !== null && packProgress >= 0 && packProgress < 1
 
   // Save
   const handleSave = useCallback(async () => {
@@ -90,7 +96,17 @@ export function EffectPage() {
   return (
     <div className={styles.page}>
       <div className={styles.previewArea}>
-        <canvas ref={canvasRef} className={styles.preview} />
+        <div className={styles.previewContainer}>
+          <canvas ref={canvasRef} className={styles.preview} />
+          {packVisible && (
+            <img
+              src={PACK_IMAGE_MAP[packType]}
+              alt="Pack"
+              className={styles.packOverlay}
+              style={{ opacity: 1 - packProgress }}
+            />
+          )}
+        </div>
         <button className={styles.resetBtn} onClick={reset}>&#8635;</button>
       </div>
 

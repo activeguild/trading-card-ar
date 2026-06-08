@@ -13,11 +13,28 @@
   gap: 8px;
 }
 
+.previewContainer {
+  position: relative;
+  display: inline-block;
+}
+
 .preview {
   max-width: 60vw;
   max-height: 30vh;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: block;
+}
+
+.packOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 130%;
+  width: auto;
+  pointer-events: none;
+  border-radius: 12px;
 }
 
 .resetBtn {
