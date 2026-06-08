@@ -420,7 +420,7 @@ export function useCardEffectRenderer(
       // If nothing is selected, just show the card
       if (!hasTransition && !hasEffect) {
         renderCard(null)
-        onTransitionRef.current?.(-1)
+        if (packCanvas) packCanvas.style.display = 'none'
         animRef.current = requestAnimationFrame(render)
         return
       }
