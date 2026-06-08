@@ -241,7 +241,7 @@ export function useCardEffectRenderer(
         packCanvas.width = w
         packCanvas.height = h
         const pCtx = packCanvas.getContext('2d')!
-        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * 1.2
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * 1.5
         const pw = img.naturalWidth * scale
         const ph = img.naturalHeight * scale
         pCtx.drawImage(img, (w - pw) / 2, (h - ph) / 2, pw, ph)
