@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef } from 'react'
 import { vertexShader } from './shaders/common'
 import {
   EFFECT_SHADERS,
+  TRANSITION_SHADERS,
+  PACK_IMAGE_MAP,
   type EffectName,
   type TransitionName,
   type PackType,
@@ -186,19 +188,18 @@ const TRANSITION_DURATION = 4
 
 export function useCardEffectRenderer(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  packCanvasRef: React.RefObject<HTMLCanvasElement | null>,
   image: HTMLImageElement | null,
   config: RendererConfig,
-  onTransitionProgress?: (progress: number) => void, // 0=start, 1=done, -1=not in transition
 ) {
   const animRef = useRef(0)
   const startTimeRef = useRef(0)
   const configRef = useRef(config)
   configRef.current = config
-  const onTransitionRef = useRef(onTransitionProgress)
-  onTransitionRef.current = onTransitionProgress
 
   useEffect(() => {
     const canvas = canvasRef.current
+    const packCanvas = packCanvasRef.current
     if (!canvas || !image) return
 
     cancelAnimationFrame(animRef.current)
@@ -229,6 +230,90 @@ export function useCardEffectRenderer(
     const bgTex = createEmptyTexture(gl)!
 
     const fbo1 = createFramebuffer(gl, w, h)
+
+    // --- Pack canvas setup (for transition shader on pack image) ---
+    let packGl: WebGLRenderingContext | null = null
+    let packTexture: WebGLTexture | null = null
+    let packEdgeMapTex: WebGLTexture | null = null
+    let packBgTex: WebGLTexture | null = null
+    let packProgramCache = new Map<string, WebGLProgram>()
+    let currentPackType: PackType | null = null
+    let packReady = false
+
+    function setupPackCanvas(pt: PackType) {
+      if (pt === currentPackType && packReady) return
+      currentPackType = pt
+      packReady = false
+
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        if (!packCanvas) return
+        const pw = img.naturalWidth
+        const ph = img.naturalHeight
+        const MAX = 500
+        let dw = pw, dh = ph
+        if (dw > MAX || dh > MAX) {
+          const s = Math.min(MAX / dw, MAX / dh)
+          dw = Math.round(dw * s)
+          dh = Math.round(dh * s)
+        }
+        packCanvas.width = dw
+        packCanvas.height = dh
+
+        if (!packGl) {
+          packGl = packCanvas.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true })
+        }
+        if (!packGl) return
+
+        // Clean old textures
+        if (packTexture) packGl.deleteTexture(packTexture)
+        if (packEdgeMapTex) packGl.deleteTexture(packEdgeMapTex)
+        if (packBgTex) packGl.deleteTexture(packBgTex)
+        packProgramCache.forEach((p) => packGl!.deleteProgram(p))
+        packProgramCache = new Map()
+
+        packTexture = uploadTexture(packGl, img)
+        // Simple edge map for pack (not needed much, create empty)
+        packEdgeMapTex = createEmptyTexture(packGl)
+        packBgTex = createEmptyTexture(packGl)
+        packReady = true
+      }
+      img.src = PACK_IMAGE_MAP[pt]
+    }
+
+    function getPackProgram(shaderSource: string): WebGLProgram | null {
+      if (!packGl) return null
+      let prog = packProgramCache.get(shaderSource)
+      if (prog) return prog
+      prog = linkProgram(packGl, vertexShader, shaderSource)!
+      if (prog) {
+        setupGeometry(packGl, prog)
+        packProgramCache.set(shaderSource, prog)
+      }
+      return prog || null
+    }
+
+    function renderPackTransition(transitionName: TransitionName, time: number) {
+      if (!packGl || !packTexture || !packEdgeMapTex || !packBgTex || !packCanvas) return
+      const shader = TRANSITION_SHADERS[transitionName]
+      const prog = getPackProgram(shader)
+      if (!prog) return
+      renderPass({
+        gl: packGl,
+        program: prog,
+        w: packCanvas.width,
+        h: packCanvas.height,
+        imageTex: packTexture,
+        edgeMapTex: packEdgeMapTex,
+        bgTex: packBgTex,
+        borderWidth: 0.05,
+        intensity: 1.0,
+        speed: 1.0,
+        effectColor: [1, 1, 1],
+        time, mode: 1, blendMode: 0, effectOnly: 0,
+      })
+    }
 
     // Build programs map (lazily compiled)
     const programCache = new Map<string, WebGLProgram>()
@@ -346,11 +431,19 @@ export function useCardEffectRenderer(
       // Render card + effects
       renderEffectedCard(cfg, elapsed, null)
 
-      // Report transition progress for pack overlay
-      if (inTransition) {
-        onTransitionRef.current?.(phase / TRANSITION_DURATION)
-      } else {
-        onTransitionRef.current?.(-1)
+      // Render transition on pack canvas
+      if (hasTransition) {
+        setupPackCanvas(cfg.packType)
+        if (packCanvas) {
+          if (inTransition && packReady) {
+            packCanvas.style.display = 'block'
+            renderPackTransition(cfg.transition!, phase)
+          } else {
+            packCanvas.style.display = inTransition ? 'block' : 'none'
+          }
+        }
+      } else if (packCanvas) {
+        packCanvas.style.display = 'none'
       }
 
       animRef.current = requestAnimationFrame(render)
@@ -366,6 +459,13 @@ export function useCardEffectRenderer(
       gl.deleteTexture(bgTex)
       gl.deleteTexture(fbo1.tex)
       gl.deleteFramebuffer(fbo1.fb)
+      // Pack cleanup
+      if (packGl) {
+        if (packTexture) packGl.deleteTexture(packTexture)
+        if (packEdgeMapTex) packGl.deleteTexture(packEdgeMapTex)
+        if (packBgTex) packGl.deleteTexture(packBgTex)
+        packProgramCache.forEach((p) => packGl!.deleteProgram(p))
+      }
     }
   }, [canvasRef, image])
 

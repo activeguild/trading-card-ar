@@ -10,6 +10,7 @@ type Props = {
 
 export function EffectPreviewCanvas({ cardImageUrl, settings, className }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const packCanvasRef = useRef<HTMLCanvasElement>(null)
   const [image, setImage] = useState<HTMLImageElement | null>(null)
 
   useEffect(() => {
@@ -19,7 +20,12 @@ export function EffectPreviewCanvas({ cardImageUrl, settings, className }: Props
     img.src = cardImageUrl
   }, [cardImageUrl])
 
-  useCardEffectRenderer(canvasRef, image, settings)
+  useCardEffectRenderer(canvasRef, packCanvasRef, image, settings)
 
-  return <canvas ref={canvasRef} className={className} />
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <canvas ref={canvasRef} className={className} />
+      <canvas ref={packCanvasRef} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxHeight: '140%', maxWidth: '140%', pointerEvents: 'none', display: 'none' }} />
+    </div>
+  )
 }

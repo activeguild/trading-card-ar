@@ -7,7 +7,6 @@ import {
   EFFECT_LIST,
   TRANSITION_LIST,
   PACK_LIST,
-  PACK_IMAGE_MAP,
   type EffectName,
   type EffectSettings,
   type TransitionName,
@@ -28,6 +27,7 @@ export function EffectPage() {
   const { token } = useAuth()
   const navigate = useNavigate()
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const packCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const [card, setCard] = useState<CardInfo | null>(null)
   const [image, setImage] = useState<HTMLImageElement | null>(null)
@@ -60,14 +60,9 @@ export function EffectPage() {
     img.src = card.corrected_url
   }, [card])
 
-  // Pack overlay state: -1=hidden, 0~1=transition progress
-  const [packProgress, setPackProgress] = useState(-1)
-
   // Renderer config
   const config: RendererConfig = { transition, borderEffect, innerEffect, packType }
-  const { reset } = useCardEffectRenderer(canvasRef, image, config, setPackProgress)
-
-  const packVisible = transition !== null && packProgress >= 0 && packProgress < 1
+  const { reset } = useCardEffectRenderer(canvasRef, packCanvasRef, image, config)
 
   // Save
   const handleSave = useCallback(async () => {
@@ -98,14 +93,7 @@ export function EffectPage() {
       <div className={styles.previewArea}>
         <div className={styles.previewContainer}>
           <canvas ref={canvasRef} className={styles.preview} />
-          {packVisible && (
-            <img
-              src={PACK_IMAGE_MAP[packType]}
-              alt="Pack"
-              className={styles.packOverlay}
-              style={{ opacity: 1 - packProgress }}
-            />
-          )}
+          <canvas ref={packCanvasRef} className={styles.packCanvas} />
         </div>
         <button className={styles.resetBtn} onClick={reset}>&#8635;</button>
       </div>
