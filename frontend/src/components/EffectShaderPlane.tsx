@@ -25,6 +25,12 @@ void main() {
 }
 `
 
+function createEmptyTexture(): THREE.DataTexture {
+  const tex = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1, THREE.RGBAFormat)
+  tex.needsUpdate = true
+  return tex
+}
+
 function createEffectMaterial(
   effectName: EffectName,
   mode: number,
@@ -38,9 +44,9 @@ function createEffectMaterial(
     vertexShader: threeVertexShader,
     fragmentShader: adaptShaderForThreeJS(fragSource),
     uniforms: {
-      u_image: { value: null },
-      u_edgeMap: { value: null },
-      u_background: { value: null },
+      u_image: { value: createEmptyTexture() },
+      u_edgeMap: { value: createEmptyTexture() },
+      u_background: { value: createEmptyTexture() },
       u_time: { value: 0 },
       u_resolution: { value: new THREE.Vector2(width, height) },
       u_borderWidth: { value: 0.05 },
