@@ -27,28 +27,19 @@ export function ARViewerPage() {
   const [error, setError] = useState('')
   const [arKey, setArKey] = useState(0)
 
-  const loadCard = () => {
+  useEffect(() => {
     if (!id) return
-    setCard(null)
-    setError('')
     fetch(`/api/ar/card/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('Card not found')
         return res.json()
       })
-      .then((data) => {
-        setCard(data)
-        setArKey((k) => k + 1)
-      })
+      .then((data) => setCard(data))
       .catch((e) => setError(e.message))
-  }
-
-  useEffect(() => {
-    loadCard()
   }, [id])
 
   const handleRetry = () => {
-    loadCard()
+    window.location.reload()
   }
 
   if (error) {
