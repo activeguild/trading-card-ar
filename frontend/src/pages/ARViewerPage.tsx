@@ -7,7 +7,8 @@ import {
 } from '@j1ngzoue/8thwall-react-three-fiber'
 import { CardPlane } from '../components/CardPlane'
 import { EffectShaderPlane } from '../components/EffectShaderPlane'
-import type { EffectSettings as OldEffectSettings } from '../lib/effectRenderer'
+import { PackTransitionPlane } from '../components/PackTransitionPlane'
+import type { EffectSettings } from '../lib/shaders/index'
 import * as THREE from 'three'
 import styles from './ARViewerPage.module.css'
 
@@ -16,26 +17,7 @@ type ARCardData = {
   marker_url: string
   target_url: string
   effect_url: string | null
-  effect_settings: Record<string, unknown> | null
-}
-
-function toOldEffectSettings(api: Record<string, unknown>): OldEffectSettings {
-  // Support both old format (hologram/neon/glow) and new format (transition/borderEffect/innerEffect)
-  if ('hologram' in api) {
-    return {
-      hologram: api.hologram as boolean,
-      neon: api.neon as boolean,
-      glow: api.glow as boolean,
-      glowColor: (api.glow_color as [number, number, number]) ?? [1, 1, 1],
-    }
-  }
-  // New format: map borderEffect to hologram-like display for AR
-  return {
-    hologram: !!(api.borderEffect),
-    neon: false,
-    glow: false,
-    glowColor: [1, 1, 1],
-  }
+  effect_settings: EffectSettings | null
 }
 
 export function ARViewerPage() {
@@ -74,7 +56,9 @@ export function ARViewerPage() {
     return <div className={styles.loading}>Loading AR...</div>
   }
 
-  const effectSettings = card.effect_settings ? toOldEffectSettings(card.effect_settings) : null
+  const hasEffect = card.effect_settings &&
+    (card.effect_settings.borderEffect || card.effect_settings.innerEffect)
+  const hasTransition = card.effect_settings?.transition != null
 
   return (
     <div className={styles.container}>
@@ -94,10 +78,18 @@ export function ARViewerPage() {
         <EighthwallCamera />
         <ImageTracker targetImage={card.target_url}>
           <CardPlane src={card.marker_url} width={590} height={860} />
-          {effectSettings && (
+          {hasEffect && (
             <EffectShaderPlane
               cardImageUrl={card.marker_url}
-              settings={effectSettings}
+              settings={card.effect_settings!}
+              width={590}
+              height={860}
+            />
+          )}
+          {hasTransition && (
+            <PackTransitionPlane
+              transition={card.effect_settings!.transition!}
+              packType={card.effect_settings!.packType}
               width={590}
               height={860}
             />

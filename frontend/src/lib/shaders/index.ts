@@ -152,18 +152,20 @@ export const TRANSITION_LIST: { key: TransitionName; label: string }[] = [
   { key: 'magicDust', label: '魔法の粒子' },
 ]
 
-export type PackType = 'normal' | 'silver' | 'gold'
+export type PackType = 'normal' | 'silver' | 'gold' | 'black'
 
 export const PACK_LIST: { key: PackType; label: string }[] = [
   { key: 'normal', label: 'ノーマル' },
   { key: 'silver', label: 'シルバー' },
   { key: 'gold', label: 'ゴールド' },
+  { key: 'black', label: 'ブラック' },
 ]
 
 export const PACK_IMAGE_MAP: Record<PackType, string> = {
   normal: '/pack-normal.png',
   silver: '/pack-silver.png',
   gold: '/pack-gold.png',
+  black: '/pack-black.png',
 }
 
 export interface EffectSettings {

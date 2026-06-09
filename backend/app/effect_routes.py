@@ -11,10 +11,10 @@ router = APIRouter(prefix="/api", tags=["effects"])
 
 
 class EffectSettings(BaseModel):
-    hologram: bool = True
-    neon: bool = True
-    glow: bool = True
-    glow_color: list[float] = [0.66, 0.33, 0.97]  # RGB 0-1
+    transition: str | None = None
+    borderEffect: str | None = None
+    innerEffect: str | None = None
+    packType: str = "normal"
 
 
 class EffectSettingsResult(BaseModel):
