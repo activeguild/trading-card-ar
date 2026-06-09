@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   EighthwallCanvas,
   EighthwallCamera,
@@ -22,6 +22,7 @@ type ARCardData = {
 
 export function ARViewerPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [card, setCard] = useState<ARCardData | null>(null)
   const [error, setError] = useState('')
   const [arKey, setArKey] = useState(0)
@@ -62,6 +63,9 @@ export function ARViewerPage() {
 
   return (
     <div className={styles.container}>
+      <button className={styles.closeBtn} onClick={() => navigate(-1)}>
+        &times;
+      </button>
       <div className={styles.cardName}>AR View</div>
       <button className={styles.retryFloating} onClick={handleRetry}>
         Reload

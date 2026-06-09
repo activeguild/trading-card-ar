@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   EighthwallCanvas,
   EighthwallCamera,
@@ -28,6 +28,7 @@ type ARDeckData = {
 
 export function DeckARViewerPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [deck, setDeck] = useState<ARDeckData | null>(null)
   const [error, setError] = useState('')
 
@@ -52,6 +53,9 @@ export function DeckARViewerPage() {
 
   return (
     <div className={styles.container}>
+      <button className={styles.closeBtn} onClick={() => navigate(-1)}>
+        &times;
+      </button>
       <div className={styles.deckName}>{deck.name}</div>
       <EighthwallCanvas
         xrSrc="/xr.js"
