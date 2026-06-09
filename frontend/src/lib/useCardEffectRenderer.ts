@@ -184,6 +184,7 @@ export interface RendererConfig {
 }
 
 const CYCLE_DURATION = 30
+const PACK_SHOW_DURATION = 3
 const TRANSITION_DURATION = 4
 
 export function useCardEffectRenderer(
@@ -426,7 +427,9 @@ export function useCardEffectRenderer(
       }
 
       const phase = elapsed % CYCLE_DURATION
-      const inTransition = hasTransition && phase < TRANSITION_DURATION
+      const packPhaseEnd = PACK_SHOW_DURATION + TRANSITION_DURATION
+      const inPackShow = hasTransition && phase < PACK_SHOW_DURATION
+      const inTransition = hasTransition && phase >= PACK_SHOW_DURATION && phase < packPhaseEnd
 
       // Render card + effects
       renderEffectedCard(cfg, elapsed, null)
@@ -435,11 +438,15 @@ export function useCardEffectRenderer(
       if (hasTransition) {
         setupPackCanvas(cfg.packType)
         if (packCanvas) {
-          if (inTransition && packReady) {
+          if (inPackShow && packReady) {
+            // Show pack image static (time=0 so transition hasn't started)
             packCanvas.style.display = 'block'
-            renderPackTransition(cfg.transition!, phase)
+            renderPackTransition(cfg.transition!, 0)
+          } else if (inTransition && packReady) {
+            packCanvas.style.display = 'block'
+            renderPackTransition(cfg.transition!, phase - PACK_SHOW_DURATION)
           } else {
-            packCanvas.style.display = inTransition ? 'block' : 'none'
+            packCanvas.style.display = 'none'
           }
         }
       } else if (packCanvas) {

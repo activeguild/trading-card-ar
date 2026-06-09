@@ -12,7 +12,6 @@ import type { EffectSettings } from '../lib/shaders/index'
  * to a Three.js vertex shader (position/uv).
  */
 function adaptShaderForThreeJS(fragmentSource: string): string {
-  // Replace varying name from v_texCoord to vUv
   return fragmentSource
     .replace(/varying\s+vec2\s+v_texCoord\s*;/g, 'varying vec2 vUv;')
     .replace(/v_texCoord/g, 'vUv')
@@ -26,6 +25,38 @@ void main() {
 }
 `
 
+function createEffectMaterial(
+  effectName: EffectName,
+  mode: number,
+  blendMode: number,
+  width: number,
+  height: number,
+): THREE.ShaderMaterial | null {
+  const fragSource = EFFECT_SHADERS[effectName]
+  if (!fragSource) return null
+  return new THREE.ShaderMaterial({
+    vertexShader: threeVertexShader,
+    fragmentShader: adaptShaderForThreeJS(fragSource),
+    uniforms: {
+      u_image: { value: null },
+      u_edgeMap: { value: null },
+      u_background: { value: null },
+      u_time: { value: 0 },
+      u_resolution: { value: new THREE.Vector2(width, height) },
+      u_borderWidth: { value: 0.05 },
+      u_intensity: { value: 1.0 },
+      u_speed: { value: 1.0 },
+      u_mode: { value: mode },
+      u_blendMode: { value: blendMode },
+      u_effectColor: { value: new THREE.Vector3(1, 1, 1) },
+      u_effectOnly: { value: 0 },
+    },
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  })
+}
+
 type Props = {
   cardImageUrl: string
   settings: EffectSettings
@@ -37,70 +68,18 @@ type Props = {
 export function EffectShaderPlane({ cardImageUrl, settings, width, height, scale = 1 }: Props) {
   const textureRef = useRef<THREE.Texture | null>(null)
   const edgeMapTexRef = useRef<THREE.Texture | null>(null)
-  const materialBorderRef = useRef<THREE.ShaderMaterial | null>(null)
-  const materialInnerRef = useRef<THREE.ShaderMaterial | null>(null)
 
   const hasBorder = settings.borderEffect !== null
   const hasInner = settings.innerEffect !== null
 
-  // Create border effect material
   const borderMaterial = useMemo(() => {
     if (!hasBorder) return null
-    const fragSource = EFFECT_SHADERS[settings.borderEffect as EffectName]
-    if (!fragSource) return null
-    const mat = new THREE.ShaderMaterial({
-      vertexShader: threeVertexShader,
-      fragmentShader: adaptShaderForThreeJS(fragSource),
-      uniforms: {
-        u_image: { value: null },
-        u_edgeMap: { value: null },
-        u_background: { value: null },
-        u_time: { value: 0 },
-        u_resolution: { value: new THREE.Vector2(width, height) },
-        u_borderWidth: { value: 0.05 },
-        u_intensity: { value: 1.0 },
-        u_speed: { value: 1.0 },
-        u_mode: { value: 0 }, // outer frame
-        u_blendMode: { value: 0 },
-        u_effectColor: { value: new THREE.Vector3(1, 1, 1) },
-        u_effectOnly: { value: 0 },
-      },
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    })
-    materialBorderRef.current = mat
-    return mat
+    return createEffectMaterial(settings.borderEffect as EffectName, 0, 0, width, height)
   }, [settings.borderEffect])
 
-  // Create inner effect material
   const innerMaterial = useMemo(() => {
     if (!hasInner) return null
-    const fragSource = EFFECT_SHADERS[settings.innerEffect as EffectName]
-    if (!fragSource) return null
-    const mat = new THREE.ShaderMaterial({
-      vertexShader: threeVertexShader,
-      fragmentShader: adaptShaderForThreeJS(fragSource),
-      uniforms: {
-        u_image: { value: null },
-        u_edgeMap: { value: null },
-        u_background: { value: null },
-        u_time: { value: 0 },
-        u_resolution: { value: new THREE.Vector2(width, height) },
-        u_borderWidth: { value: 0.05 },
-        u_intensity: { value: 1.0 },
-        u_speed: { value: 1.0 },
-        u_mode: { value: 1 }, // overlay
-        u_blendMode: { value: 1 }, // add
-        u_effectColor: { value: new THREE.Vector3(1, 1, 1) },
-        u_effectOnly: { value: 0 },
-      },
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    })
-    materialInnerRef.current = mat
-    return mat
+    return createEffectMaterial(settings.innerEffect as EffectName, 1, 1, width, height)
   }, [settings.innerEffect])
 
   // Load card texture
@@ -110,20 +89,20 @@ export function EffectShaderPlane({ cardImageUrl, settings, width, height, scale
       tex.minFilter = THREE.LinearFilter
       tex.magFilter = THREE.LinearFilter
       textureRef.current = tex
-      if (materialBorderRef.current) {
-        materialBorderRef.current.uniforms.u_image.value = tex
-        materialBorderRef.current.uniforms.u_resolution.value.set(tex.image.width, tex.image.height)
+      if (borderMaterial) {
+        borderMaterial.uniforms.u_image.value = tex
+        borderMaterial.uniforms.u_resolution.value.set(tex.image.width, tex.image.height)
       }
-      if (materialInnerRef.current) {
-        materialInnerRef.current.uniforms.u_image.value = tex
-        materialInnerRef.current.uniforms.u_resolution.value.set(tex.image.width, tex.image.height)
+      if (innerMaterial) {
+        innerMaterial.uniforms.u_image.value = tex
+        innerMaterial.uniforms.u_resolution.value.set(tex.image.width, tex.image.height)
       }
     })
 
     return () => {
       if (textureRef.current) textureRef.current.dispose()
     }
-  }, [cardImageUrl])
+  }, [cardImageUrl, borderMaterial, innerMaterial])
 
   // Generate edge map texture from card image
   useEffect(() => {
@@ -171,22 +150,22 @@ export function EffectShaderPlane({ cardImageUrl, settings, width, height, scale
       edgeTex.magFilter = THREE.LinearFilter
       edgeMapTexRef.current = edgeTex
 
-      if (materialBorderRef.current) {
-        materialBorderRef.current.uniforms.u_edgeMap.value = edgeTex
+      if (borderMaterial) {
+        borderMaterial.uniforms.u_edgeMap.value = edgeTex
       }
-      if (materialInnerRef.current) {
-        materialInnerRef.current.uniforms.u_edgeMap.value = edgeTex
+      if (innerMaterial) {
+        innerMaterial.uniforms.u_edgeMap.value = edgeTex
       }
     }
     img.src = cardImageUrl
-  }, [cardImageUrl])
+  }, [cardImageUrl, borderMaterial, innerMaterial])
 
   useFrame((_, delta) => {
-    if (materialBorderRef.current) {
-      materialBorderRef.current.uniforms.u_time.value += delta
+    if (borderMaterial) {
+      borderMaterial.uniforms.u_time.value += delta
     }
-    if (materialInnerRef.current) {
-      materialInnerRef.current.uniforms.u_time.value += delta
+    if (innerMaterial) {
+      innerMaterial.uniforms.u_time.value += delta
     }
   })
 

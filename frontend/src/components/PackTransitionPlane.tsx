@@ -9,6 +9,7 @@ import {
 } from '../lib/shaders/index'
 
 const CYCLE_DURATION = 30
+const PACK_SHOW_DURATION = 3
 const TRANSITION_DURATION = 4
 
 function adaptShaderForThreeJS(fragmentSource: string): string {
@@ -86,11 +87,15 @@ export function PackTransitionPlane({ transition, packType, width, height, scale
     if (!material || !meshRef.current) return
     const elapsed = (performance.now() - startTimeRef.current) / 1000
     const phase = elapsed % CYCLE_DURATION
-    const inTransition = phase < TRANSITION_DURATION
+    const inPackShow = phase < PACK_SHOW_DURATION
+    const inTransition = phase >= PACK_SHOW_DURATION && phase < PACK_SHOW_DURATION + TRANSITION_DURATION
 
-    if (inTransition) {
+    if (inPackShow) {
       meshRef.current.visible = true
-      material.uniforms.u_time.value = phase
+      material.uniforms.u_time.value = 0
+    } else if (inTransition) {
+      meshRef.current.visible = true
+      material.uniforms.u_time.value = phase - PACK_SHOW_DURATION
     } else {
       meshRef.current.visible = false
     }
@@ -100,7 +105,7 @@ export function PackTransitionPlane({ transition, packType, width, height, scale
 
   const aspect = width / height
   // Pack is slightly larger than the card
-  const totalScale = scale * 1.2
+  const totalScale = scale * 1.15
   const planeHeight = 1 * totalScale
   const planeWidth = planeHeight * aspect
 

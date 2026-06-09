@@ -25,7 +25,7 @@ export function EffectPreviewCanvas({ cardImageUrl, settings, className }: Props
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <canvas ref={canvasRef} className={className} />
-      <canvas ref={packCanvasRef} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxHeight: '140%', maxWidth: '140%', pointerEvents: 'none', display: 'none' }} />
+      <canvas ref={packCanvasRef} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxHeight: '115%', maxWidth: '115%', pointerEvents: 'none', display: 'none' }} />
     </div>
   )
 }
